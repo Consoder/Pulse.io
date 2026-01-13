@@ -32,7 +32,16 @@ const io = new Server(httpServer, {
         methods: ["GET", "POST"]
     }
 });
+const app = express();
 
+// 👇 UPDATE THIS PART
+app.use(cors({
+    origin: [
+        "http://localhost:5173",                // For local development
+        "https://pulse-io-psi.vercel.app"       // ✅ YOUR REAL VERCEL DOMAIN
+    ],
+    credentials: true
+}));
 // --- SECURITY MIDDLEWARE (The "Brutal" Refinement) ---
 
 // 1. Helmet: Sets security headers (prevents sniffing)
