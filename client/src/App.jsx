@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
 import { ReactLenis } from '@studio-freight/react-lenis';
 import axios from 'axios';
@@ -7,6 +7,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import emailjs from '@emailjs/browser'; // <--- NEW IMPORT FOR EMAILS
 import {
     Activity, Zap, Command, Lock, Clock, BarChart3, Globe,
     X, ShieldCheck, Copy, Terminal, ChevronRight, ChevronLeft, Fingerprint, MapPin,
@@ -56,8 +57,7 @@ const Marquee = ({ text }) => (
 );
 
 // --- NEW CODER DOODLE CARD ---
-const LanyardProfile = () => {
-    // Fake contribution data for the doodle graph
+const CoderDoodleCard = () => {
     const contributions = Array.from({ length: 52 }).map((_, i) => Math.floor(Math.random() * 4));
     const contribColors = ['bg-[#161b22]', 'bg-[#0e4429]', 'bg-[#006d32]', 'bg-[#26a641]', 'bg-[#39d353]'];
 
@@ -66,105 +66,55 @@ const LanyardProfile = () => {
             whileHover={{ rotate: 0, scale: 1.02 }}
             initial={{ rotate: 2 }}
             className="relative w-[350px] md:w-[400px] h-auto bg-[#0d1117] border-[3px] border-white/80 rounded-xl p-6 text-white shadow-[10px_10px_0px_0px_rgba(255,255,255,0.1)] overflow-hidden font-mono group"
-            style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
-            }}
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")` }}
         >
-            {/* Hand-Drawn Decorative Overlays (SVG) */}
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-60 mix-blend-overlay z-0" xmlns="http://www.w3.org/2000/svg">
-                {/* Arrow pointing to title */}
                 <path d="M 40 40 Q 10 80 50 100" stroke="white" strokeWidth="2" fill="none" strokeDasharray="5,5" className="sketch-line"/>
                 <path d="M 45 95 L 50 100 L 55 95" stroke="white" strokeWidth="2" fill="none" className="sketch-line"/>
-
-                {/* Underline for Name */}
                 <path d="M 100 85 Q 150 95 250 80" stroke="#6366f1" strokeWidth="2" fill="none" className="sketch-line-delay"/>
-
-                {/* Circle around "Verified" */}
                 <ellipse cx="320" cy="85" rx="40" ry="15" stroke="#facc15" strokeWidth="2" fill="none" strokeDasharray="8,4" transform="rotate(-10 320 85)" className="sketch-line"/>
             </svg>
-
             <div className="relative z-10 flex flex-col h-full">
-                {/* Header: Avatar & Identity */}
                 <div className="flex items-center gap-6 mb-8">
                     <div className="relative">
                         <div className="w-24 h-24 border-4 border-white/80 rounded-full overflow-hidden bg-black relative z-10 rotate-[-3deg] group-hover:rotate-0 transition-all shadow-xl">
-                            {/* Notion Style Avatar for Sketch Vibe */}
                             <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Kartik&backgroundColor=b6e3f4" alt="Dev" className="w-full h-full object-cover grayscale contrast-125" />
                         </div>
-                        <span className="absolute -top-4 -left-4 text-xs text-gray-400 -rotate-12 font-handwriting">"The Architect"</span>
+                        <span className="absolute -top-4 -left-4 text-xs text-gray-400 -rotate-12 font-handwriting">"The Architect" &rarr;</span>
                     </div>
                     <div>
-                        <h2 className="text-3xl font-black tracking-tighter mb-1 relative inline-block">
-                            KARTIK.B
-                        </h2>
+                        <h2 className="text-3xl font-black tracking-tighter mb-1 relative inline-block">KARTIK.B</h2>
                         <div className="flex flex-col items-start gap-1">
                             <div className="text-xs font-mono text-gray-400">@kartik_builds</div>
-                            <div className="text-[10px] bg-primary text-black font-bold px-2 py-0.5 -rotate-2 border border-black shadow-[2px_2px_0px_0px_rgba(255,255,255,0.5)]">
-                                FULL_STACK_DEV
-                            </div>
+                            <div className="text-[10px] bg-primary text-black font-bold px-2 py-0.5 -rotate-2 border border-black shadow-[2px_2px_0px_0px_rgba(255,255,255,0.5)]">FULL_STACK_DEV</div>
                         </div>
                     </div>
                 </div>
-
-                {/* Section: Tech Stack Stickers */}
                 <div className="mb-8">
-                    <h3 className="text-xs text-gray-400 mb-3 flex items-center gap-2 font-handwriting">
-                        <Terminal size={14}/> Weapons of Choice
-                    </h3>
+                    <h3 className="text-xs text-gray-400 mb-3 flex items-center gap-2 font-handwriting"><Terminal size={14}/> Weapons of Choice</h3>
                     <div className="flex flex-wrap gap-2">
-                        {[
-                            { name: "REACT", bg: "bg-[#61DAFB]", text: "text-black", rot: "-rotate-2" },
-                            { name: "NODE", bg: "bg-[#339933]", text: "text-white", rot: "rotate-3" },
-                            { name: "AWS", bg: "bg-[#FF9900]", text: "text-black", rot: "-rotate-1" },
-                            { name: "NEXT.JS", bg: "bg-white", text: "text-black", rot: "rotate-2" },
-                            { name: "MONGO", bg: "bg-[#47A248]", text: "text-white", rot: "-rotate-3" },
-                        ].map((tech, i) => (
-                            <motion.div
-                                key={i}
-                                whileHover={{ scale: 1.1, rotate: 0, zIndex: 10 }}
-                                className={cn("px-3 py-1 font-bold text-xs border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.5)] cursor-default select-none", tech.bg, tech.text, tech.rot)}
-                            >
-                                {tech.name}
-                            </motion.div>
+                        {[ { name: "REACT", bg: "bg-[#61DAFB]", text: "text-black", rot: "-rotate-2" }, { name: "NODE", bg: "bg-[#339933]", text: "text-white", rot: "rotate-3" }, { name: "AWS", bg: "bg-[#FF9900]", text: "text-black", rot: "-rotate-1" }, { name: "NEXT.JS", bg: "bg-white", text: "text-black", rot: "rotate-2" }, { name: "MONGO", bg: "bg-[#47A248]", text: "text-white", rot: "-rotate-3" } ].map((tech, i) => (
+                            <motion.div key={i} whileHover={{ scale: 1.1, rotate: 0, zIndex: 10 }} className={cn("px-3 py-1 font-bold text-xs border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.5)] cursor-default select-none", tech.bg, tech.text, tech.rot)}>{tech.name}</motion.div>
                         ))}
                     </div>
                 </div>
-
-                {/* Section: The Commit Graph Doodle */}
                 <div className="mb-8 p-3 bg-black/50 border border-white/10 rounded-lg relative overflow-hidden backdrop-blur-md">
                     <div className="absolute top-0 left-0 bg-white/10 px-2 py-0.5 text-[8px] font-mono border-b border-r border-white/10 text-gray-400">CONTRIBUTIONS_2026</div>
                     <div className="flex gap-1 mt-3 flex-wrap justify-center opacity-80">
-                        {contributions.map((level, i) => (
-                            <div key={i} className={cn("w-2.5 h-2.5 rounded-[1px]", contribColors[level])} />
-                        ))}
+                        {contributions.map((level, i) => ( <div key={i} className={cn("w-2.5 h-2.5 rounded-[1px]", contribColors[level])} /> ))}
                     </div>
-                    <div className="text-right text-[10px] text-gray-500 mt-2 font-handwriting italic">It ain't much, but it's honest work</div>
+                    <div className="text-right text-[10px] text-gray-500 mt-2 font-handwriting italic">It ain't much, but it's honest work &rarr;</div>
                 </div>
-
-                {/* Footer: Hand-drawn Socials */}
                 <div className="mt-auto flex justify-between items-center pt-4 border-t-2 border-dashed border-white/10">
-                    <div className="text-xs text-gray-400 flex items-center gap-2 group/status cursor-pointer">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"/>
-                        <span className="group-hover/status:text-white transition-colors">Available for Hire</span>
-                    </div>
-                    <div className="flex gap-3">
-                        <button className="p-2 bg-white/5 hover:bg-white hover:text-black rounded-lg transition-all border border-white/10 hover:scale-110"><Globe size={16}/></button>
-                        <button className="p-2 bg-white/5 hover:bg-white hover:text-black rounded-lg transition-all border border-white/10 hover:scale-110"><Zap size={16}/></button>
-                        <button className="p-2 bg-white/5 hover:bg-white hover:text-black rounded-lg transition-all border border-white/10 hover:scale-110"><Command size={16}/></button>
-                    </div>
+                    <div className="text-xs text-gray-400 flex items-center gap-2 group/status cursor-pointer"><div className="w-2 h-2 bg-green-500 rounded-full animate-ping"/><span className="group-hover/status:text-white transition-colors">Available for Hire</span></div>
+                    <div className="flex gap-3"><button className="p-2 bg-white/5 hover:bg-white hover:text-black rounded-lg transition-all border border-white/10 hover:scale-110"><Globe size={16}/></button><button className="p-2 bg-white/5 hover:bg-white hover:text-black rounded-lg transition-all border border-white/10 hover:scale-110"><Zap size={16}/></button><button className="p-2 bg-white/5 hover:bg-white hover:text-black rounded-lg transition-all border border-white/10 hover:scale-110"><Command size={16}/></button></div>
                 </div>
             </div>
-
-            {/* Injected CSS for the "Hand Drawn" animation effects */}
-            <style>{`
-                .font-handwriting { font-family: 'Comic Sans MS', 'Comic Sans', cursive; }
-                .sketch-line { stroke-dasharray: 100; stroke-dashoffset: 100; animation: draw 1.5s forwards ease-out 0.5s; }
-                .sketch-line-delay { stroke-dasharray: 100; stroke-dashoffset: 100; animation: draw 1.5s forwards ease-out 1s; }
-                @keyframes draw { to { stroke-dashoffset: 0; } }
-            `}</style>
+            <style>{`.font-handwriting { font-family: 'Comic Sans MS', 'Comic Sans', cursive; } .sketch-line { stroke-dasharray: 100; stroke-dashoffset: 100; animation: draw 1.5s forwards ease-out 0.5s; } .sketch-line-delay { stroke-dasharray: 100; stroke-dashoffset: 100; animation: draw 1.5s forwards ease-out 1s; } @keyframes draw { to { stroke-dashoffset: 0; } }`}</style>
         </motion.div>
     );
 };
+
 const ProUnlockSection = ({ onSuccess }) => {
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
@@ -181,68 +131,33 @@ const ProUnlockSection = ({ onSuccess }) => {
     return (
         <section className="relative py-32 overflow-hidden flex justify-center items-center bg-[#050505]">
             <div className="absolute inset-0 pointer-events-none select-none flex items-center justify-center overflow-hidden">
-                <div className="text-[20vw] font-black text-transparent bg-clip-text bg-gradient-to-b from-white/5 to-transparent leading-none tracking-tighter scale-150 opacity-50 blur-sm font-sans">
-                    UNLEASH
-                </div>
+                <div className="text-[20vw] font-black text-transparent bg-clip-text bg-gradient-to-b from-white/5 to-transparent leading-none tracking-tighter scale-150 opacity-50 blur-sm font-sans">UNLEASH</div>
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
             </div>
-
             <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div className="space-y-8 text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono tracking-widest uppercase">
-                        <Lock size={12} /> Restricted Intel
-                    </div>
-                    <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.9]">
-                        SEE THE <br/>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-primary animate-gradient">UNSEEN.</span>
-                    </h2>
-                    <p className="text-gray-400 text-lg md:text-xl max-w-lg mx-auto lg:mx-0 leading-relaxed font-light">
-                        Unlock <span className="text-white font-bold">God-Mode Analytics</span>. Deep-dive into geo-heatmaps, device fingerprinting, and real-time traffic surges.
-                    </p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono tracking-widest uppercase"><Lock size={12} /> Restricted Intel</div>
+                    <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.9]">SEE THE <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-primary animate-gradient">UNSEEN.</span></h2>
+                    <p className="text-gray-400 text-lg md:text-xl max-w-lg mx-auto lg:mx-0 leading-relaxed font-light">Unlock <span className="text-white font-bold">God-Mode Analytics</span>. Deep-dive into geo-heatmaps, device fingerprinting, and real-time traffic surges.</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
                         <div className="p-[1px] rounded-full bg-gradient-to-r from-primary via-white to-primary relative group">
                             <div className="absolute inset-0 bg-primary blur-md opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-                            <div className="relative bg-black rounded-full p-1">
-                                <GoogleLogin onSuccess={onSuccess} theme="filled_black" shape="pill" size="large" text="continue_with"/>
-                            </div>
+                            <div className="relative bg-black rounded-full p-1"><GoogleLogin onSuccess={onSuccess} theme="filled_black" shape="pill" size="large" text="continue_with"/></div>
                         </div>
                         <span className="text-xs text-gray-500 font-mono">// NO CREDIT CARD REQUIRED</span>
                     </div>
                 </div>
-
-                <motion.div
-                    onMouseMove={handleMouseMove} onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
-                    style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-                    className="relative w-full aspect-[4/3] perspective-1000"
-                >
+                <motion.div onMouseMove={handleMouseMove} onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }} style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="relative w-full aspect-[4/3] perspective-1000">
                     <div className="absolute inset-0 bg-neutral-900/40 border border-white/10 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-                        <div className="h-12 border-b border-white/5 flex items-center px-6 gap-2 bg-white/5">
-                            <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
-                            <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                            <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
-                            <div className="ml-auto w-24 h-2 rounded-full bg-white/10"></div>
-                        </div>
+                        <div className="h-12 border-b border-white/5 flex items-center px-6 gap-2 bg-white/5"><div className="w-3 h-3 rounded-full bg-red-500/50"></div><div className="w-3 h-3 rounded-full bg-yellow-500/50"></div><div className="w-3 h-3 rounded-full bg-green-500/50"></div><div className="ml-auto w-24 h-2 rounded-full bg-white/10"></div></div>
                         <div className="p-8 grid grid-cols-2 gap-4 opacity-50 blur-[2px] transition-all duration-500 hover:blur-none hover:opacity-80">
                             <div className="col-span-2 h-32 rounded-xl bg-gradient-to-r from-primary/10 to-transparent border border-white/5 relative overflow-hidden">
-                                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-primary/20 to-transparent clip-path-polygon"></div>
-                                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                                    <motion.path d="M0,64 C100,50 200,80 300,40 C400,0 500,60 600,64 L600,128 L0,128 Z" fill="url(#grad)" stroke="none"
-                                                 animate={{ d: ["M0,64 C100,50 200,80 300,40 C400,0 500,60 600,64 L600,128 L0,128 Z", "M0,64 C100,80 200,40 300,70 C400,20 500,80 600,64 L600,128 L0,128 Z"] }}
-                                                 transition={{ duration: 5, repeat: Infinity, repeatType: "mirror" }}
-                                    />
-                                    <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#6366f1" stopOpacity="0.4"/><stop offset="100%" stopColor="#6366f1" stopOpacity="0"/></linearGradient></defs>
-                                </svg>
+                                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none"><defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#6366f1" stopOpacity="0.4"/><stop offset="100%" stopColor="#6366f1" stopOpacity="0"/></linearGradient></defs><motion.path d="M0,64 C100,50 200,80 300,40 C400,0 500,60 600,64 L600,128 L0,128 Z" fill="url(#grad)" stroke="none" animate={{ d: ["M0,64 C100,50 200,80 300,40 C400,0 500,60 600,64 L600,128 L0,128 Z", "M0,64 C100,80 200,40 300,70 C400,20 500,80 600,64 L600,128 L0,128 Z"] }} transition={{ duration: 5, repeat: Infinity, repeatType: "mirror" }}/></svg>
                             </div>
                             <div className="h-24 rounded-xl bg-white/5 border border-white/5 p-4"><div className="w-8 h-8 rounded-full bg-primary/20 mb-2"></div><div className="w-16 h-4 bg-white/20 rounded mb-1"></div><div className="w-8 h-2 bg-white/10 rounded"></div></div>
                             <div className="h-24 rounded-xl bg-white/5 border border-white/5 p-4"><div className="w-8 h-8 rounded-full bg-purple-500/20 mb-2"></div><div className="w-16 h-4 bg-white/20 rounded mb-1"></div><div className="w-8 h-2 bg-white/10 rounded"></div></div>
                         </div>
-                        <div className="absolute inset-0 flex items-center justify-center z-20">
-                            <div className="bg-black/60 backdrop-blur-md border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl transform translate-z-20">
-                                <div className="p-3 bg-white/10 rounded-full border border-white/10"><Lock size={24} className="text-white" /></div>
-                                <div className="text-center"><div className="text-white font-bold text-lg">Analysis Locked</div><div className="text-gray-400 text-xs font-mono mt-1">AUTHENTICATION_REQUIRED</div></div>
-                                <button className="text-xs bg-white text-black px-4 py-2 rounded-full font-bold hover:bg-primary hover:text-white transition-colors">ACCESS_KEY</button>
-                            </div>
-                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center z-20"><div className="bg-black/60 backdrop-blur-md border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl transform translate-z-20"><div className="p-3 bg-white/10 rounded-full border border-white/10"><Lock size={24} className="text-white" /></div><div className="text-center"><div className="text-white font-bold text-lg">Analysis Locked</div><div className="text-gray-400 text-xs font-mono mt-1">AUTHENTICATION_REQUIRED</div></div><button className="text-xs bg-white text-black px-4 py-2 rounded-full font-bold hover:bg-primary hover:text-white transition-colors">ACCESS_KEY</button></div></div>
                     </div>
                 </motion.div>
             </div>
@@ -266,7 +181,6 @@ const Navbar = ({ user, setView, view, onSuccess }) => {
                             <img src={user.picture} className="w-8 h-8 rounded-full border border-white/20" alt="profile"/>
                         </>
                     ) : (
-                        // --- FIX: ADDED LOGIN BUTTON TO NAVBAR ---
                         <div className="opacity-90 hover:opacity-100 transition-opacity">
                             <GoogleLogin onSuccess={onSuccess} theme="filled_black" shape="pill" size="medium" text="signin" />
                         </div>
@@ -316,7 +230,6 @@ const FeatureCarousel = () => {
 
     return (
         <section className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden font-sans selection:bg-white/20">
-            {/* FIX: Reduced opacity to 10 */}
             <AnimatePresence mode="wait">
                 <motion.div
                     key={index}
@@ -390,57 +303,72 @@ const FeatureCarousel = () => {
 };
 
 const AuthorSection = () => {
-    const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+    const form = useRef();
     const [status, setStatus] = useState('idle');
 
-    const handleSubmit = (e) => {
+    // --- REAL EMAIL LOGIC WITH EMAILJS ---
+    const sendEmail = (e) => {
         e.preventDefault();
         setStatus('sending');
-        setTimeout(() => {
-            setStatus('success');
-            toast.success("Transmission Received", { description: "I will respond shortly." });
-            setFormState({ name: '', email: '', message: '' });
-            setTimeout(() => setStatus('idle'), 3000);
-        }, 2000);
+
+        // REPLACE THESE 3 STRINGS WITH YOUR ACTUAL KEYS FROM EMAILJS DASHBOARD
+        emailjs.sendForm('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', form.current, 'YOUR_PUBLIC_KEY')
+            .then((result) => {
+                setStatus('success');
+                toast.success("Transmission Received", { description: "I will respond shortly." });
+                setTimeout(() => setStatus('idle'), 3000);
+            }, (error) => {
+                setStatus('error');
+                toast.error("Transmission Failed", { description: "Signal lost. Try again later." });
+                setTimeout(() => setStatus('idle'), 3000);
+            });
     };
 
     return (
         <section className="min-h-screen bg-[#050505] relative overflow-hidden flex items-center border-t border-white/5">
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full pointer-events-none"></div>
-
-            {/* FIX: Reduced gap from lg:gap-24 to lg:gap-12 */}
             <div className="container mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
-
                 <div className="order-2 lg:order-1">
                     <div className="mb-12">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : "bg-red-500")}></div>
-                            <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{status === 'idle' ? 'Uplink Offline' : status === 'sending' ? 'Establishing Connection...' : 'Transmission Secure'}</span>
+                            <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : status === 'error' ? "bg-red-500" : "bg-red-500")}></div>
+                            <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{status === 'idle' ? 'Uplink Offline' : status === 'sending' ? 'Establishing Connection...' : status === 'success' ? 'Transmission Secure' : 'Connection Failed'}</span>
                         </div>
                         <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4">INITIATE<br/>CONTACT.</h2>
                         <p className="text-gray-400 text-lg max-w-md leading-relaxed">Ready to deploy? Send a signal directly to my terminal.</p>
                     </div>
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">OPERATOR_ID</label><input type="text" value={formState.name} onChange={(e) => setFormState({...formState, name: e.target.value})} placeholder="Enter Name" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">COMM_FREQUENCY</label><input type="email" value={formState.email} onChange={(e) => setFormState({...formState, email: e.target.value})} placeholder="name@domain.com" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">PAYLOAD_DATA</label><textarea value={formState.message} onChange={(e) => setFormState({...formState, message: e.target.value})} placeholder="Describe your mission parameters..." required rows={3} className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10 resize-none"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
+                    {/* EMAIL FORM */}
+                    <form ref={form} onSubmit={sendEmail} className="space-y-8">
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">OPERATOR_ID</label>
+                            {/* NOTE: 'name="user_name"' matches EmailJS default template variable */}
+                            <input type="text" name="user_name" placeholder="Enter Name" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">COMM_FREQUENCY</label>
+                            {/* NOTE: 'name="user_email"' matches EmailJS default template variable */}
+                            <input type="email" name="user_email" placeholder="name@domain.com" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">PAYLOAD_DATA</label>
+                            {/* NOTE: 'name="message"' matches EmailJS default template variable */}
+                            <textarea name="message" placeholder="Describe your mission parameters..." required rows={3} className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10 resize-none"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
                         <button type="submit" disabled={status === 'sending' || status === 'success'} className="group relative overflow-hidden bg-white text-black px-8 py-4 rounded-full font-bold font-mono text-sm uppercase tracking-wider hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto">
-                            <span className="relative z-10 flex items-center gap-2">{status === 'idle' && <>SEND TRANSMISSION <ArrowRight size={16}/></>}{status === 'sending' && <>ENCRYPTING... <Loader2 size={16} className="animate-spin"/></>}{status === 'success' && <>SENT <ShieldCheck size={16}/></>}</span>
+                            <span className="relative z-10 flex items-center gap-2">{status === 'idle' && <>SEND TRANSMISSION <ArrowRight size={16}/></>}{status === 'sending' && <>ENCRYPTING... <Loader2 size={16} className="animate-spin"/></>}{status === 'success' && <>SENT <ShieldCheck size={16}/></>}{status === 'error' && <>FAILED <X size={16}/></>}</span>
                             {status === 'idle' && <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-0"></div>}
                         </button>
                     </form>
                 </div>
-
-                {/* FIX: Changed justification to center on desktop so it sits closer to the form */}
                 <div className="order-1 lg:order-2 flex justify-center lg:justify-center relative">
                     <div className="relative z-10">
                         <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] border border-white/5 rounded-full border-dashed z-0 pointer-events-none"/>
                         <motion.div animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] border border-white/5 rounded-full z-0 pointer-events-none"/>
-                        {/* Make sure you are using CoderDoodleCard here if you updated it! */}
-                        <motion.div whileHover={{ scale: 1.02, rotate: 0 }} initial={{ rotate: 3 }} className="relative z-10 py-10">
-                            <LanyardProfile />
-                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.02, rotate: 0 }} initial={{ rotate: 3 }} className="relative z-10 py-10"><CoderDoodleCard /></motion.div>
                     </div>
                 </div>
             </div>
@@ -483,6 +411,12 @@ export default function App() {
     const [gateCode, setGateCode] = useState('');
     const [gatePass, setGatePass] = useState('');
 
+    // --- DYNAMIC API CONFIGURATION ---
+    const IS_LOCALHOST = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // ⚠️ REPLACE THIS WITH YOUR REAL RENDER/VERCEL BACKEND URL
+    const PROD_API = "https://pulse-backend-api.onrender.com/";
+    const API_BASE = IS_LOCALHOST ? "http://localhost:5000" : PROD_API;
+
     const handleGoogleSuccess = (credentialResponse) => {
         const decoded = jwtDecode(credentialResponse.credential);
         setUser(decoded);
@@ -492,7 +426,7 @@ export default function App() {
 
     const fetchUserLinks = async (userId) => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/stats/${userId}`);
+            const res = await axios.get(`${API_BASE}/api/stats/${userId}`);
             setUserLinks(res.data);
         } catch (e) { console.error(e) }
     };
@@ -505,7 +439,7 @@ export default function App() {
 
     const fetchAnalytics = async (shortCode) => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/analytics/${shortCode}`);
+            const res = await axios.get(`${API_BASE}/api/analytics/${shortCode}`);
             const transform = (obj) => Object.entries(obj).map(([name, value]) => ({ name, value }));
             setSelectedLinkStats({
                 ...res.data,
@@ -522,8 +456,8 @@ export default function App() {
         setLoading(true);
         try {
             const payload = { url, userId: user?.sub || 'anonymous', password: password || null, expiresAt: expiry || null, customAlias: alias || null };
-            const res = await axios.post('http://localhost:5000/api/shorten', payload);
-            const shortUrl = `http://localhost:5000/${res.data.shortCode}`;
+            const res = await axios.post(`${API_BASE}/api/shorten`, payload);
+            const shortUrl = `${API_BASE}/${res.data.shortCode}`;
             navigator.clipboard.writeText(shortUrl);
             setCreatedLink(shortUrl);
             toast.success("Deployed", { description: "Link copied to clipboard." });
@@ -535,7 +469,7 @@ export default function App() {
 
     const verifyGate = async () => {
         try {
-            const res = await axios.get(`http://localhost:5000/${gateCode}`, { params: { password: gatePass }, headers: { 'Accept': 'application/json' } });
+            const res = await axios.get(`${API_BASE}/${gateCode}`, { params: { password: gatePass }, headers: { 'Accept': 'application/json' } });
             window.location.href = res.data.url;
             setView('home'); setGatePass('');
         } catch (err) { toast.error("Access Denied"); }
@@ -621,7 +555,7 @@ export default function App() {
                                     <SpotlightCard key={link._id} className="h-64 p-6 flex flex-col justify-between">
                                         <div className="flex justify-between items-start">
                                             <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center border border-white/10"><Activity size={18} /></div>
-                                            <div className="flex gap-2">{link.password && <Lock size={14} className="text-amber-500"/>}<button onClick={() => { navigator.clipboard.writeText(`http://localhost:5000/${link.shortCode}`); toast.success("Copied") }} className="hover:text-white text-gray-500 transition-colors"><Copy size={16}/></button></div>
+                                            <div className="flex gap-2">{link.password && <Lock size={14} className="text-amber-500"/>}<button onClick={() => { navigator.clipboard.writeText(`${API_BASE}/${link.shortCode}`); toast.success("Copied") }} className="hover:text-white text-gray-500 transition-colors"><Copy size={16}/></button></div>
                                         </div>
                                         <div><a href={link.originalUrl} target="_blank" className="text-2xl font-mono font-bold hover:text-primary transition-colors block mb-1">/{link.shortCode}</a><p className="text-xs text-gray-600 truncate font-mono">{link.originalUrl}</p></div>
                                         <div className="flex items-center justify-between pt-4 border-t border-white/5">
