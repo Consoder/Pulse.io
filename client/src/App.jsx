@@ -1,7 +1,6 @@
-// FORCE UPDATE V2 - ALWAYS USE LIVE SERVER
+// FORCE UPDATE V3 - LENIS REMOVED COMPLETELY
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
-import { ReactLenis } from '@studio-freight/react-lenis'; // Kept for safety if re-added
 import axios from 'axios';
 import { Toaster, toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
@@ -304,57 +303,72 @@ const FeatureCarousel = () => {
 };
 
 const AuthorSection = () => {
-    const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+    const form = useRef();
     const [status, setStatus] = useState('idle');
 
-    const handleSubmit = (e) => {
+    // --- REAL EMAIL LOGIC WITH EMAILJS ---
+    const sendEmail = (e) => {
         e.preventDefault();
         setStatus('sending');
-        setTimeout(() => {
-            setStatus('success');
-            toast.success("Transmission Received", { description: "I will respond shortly." });
-            setFormState({ name: '', email: '', message: '' });
-            setTimeout(() => setStatus('idle'), 3000);
-        }, 2000);
+
+        // REPLACE THESE 3 STRINGS WITH YOUR ACTUAL KEYS FROM EMAILJS DASHBOARD
+        emailjs.sendForm('srv-d5j7q2fpm1nc73fnlqc0', 'template_50rsga7', form.current, 'pkKB-iN6UyzoAGoTe')
+            .then((result) => {
+                setStatus('success');
+                toast.success("Transmission Received", { description: "I will respond shortly." });
+                setTimeout(() => setStatus('idle'), 3000);
+            }, (error) => {
+                setStatus('error');
+                toast.error("Transmission Failed", { description: "Signal lost. Try again later." });
+                setTimeout(() => setStatus('idle'), 3000);
+            });
     };
 
     return (
         <section className="min-h-screen bg-[#050505] relative overflow-hidden flex items-center border-t border-white/5">
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full pointer-events-none"></div>
-
-            {/* FIX: Reduced gap from lg:gap-24 to lg:gap-12 */}
             <div className="container mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
-
                 <div className="order-2 lg:order-1">
                     <div className="mb-12">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : "bg-red-500")}></div>
-                            <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{status === 'idle' ? 'Uplink Offline' : status === 'sending' ? 'Establishing Connection...' : 'Transmission Secure'}</span>
+                            <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : status === 'error' ? "bg-red-500" : "bg-red-500")}></div>
+                            <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{status === 'idle' ? 'Uplink Offline' : status === 'sending' ? 'Establishing Connection...' : status === 'success' ? 'Transmission Secure' : 'Connection Failed'}</span>
                         </div>
                         <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4">INITIATE<br/>CONTACT.</h2>
                         <p className="text-gray-400 text-lg max-w-md leading-relaxed">Ready to deploy? Send a signal directly to my terminal.</p>
                     </div>
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">OPERATOR_ID</label><input type="text" value={formState.name} onChange={(e) => setFormState({...formState, name: e.target.value})} placeholder="Enter Name" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">COMM_FREQUENCY</label><input type="email" value={formState.email} onChange={(e) => setFormState({...formState, email: e.target.value})} placeholder="name@domain.com" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">PAYLOAD_DATA</label><textarea value={formState.message} onChange={(e) => setFormState({...formState, message: e.target.value})} placeholder="Describe your mission parameters..." required rows={3} className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10 resize-none"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
+                    {/* EMAIL FORM */}
+                    <form ref={form} onSubmit={sendEmail} className="space-y-8">
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">OPERATOR_ID</label>
+                            {/* NOTE: 'name="user_name"' matches EmailJS default template variable */}
+                            <input type="text" name="user_name" placeholder="Enter Name" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">COMM_FREQUENCY</label>
+                            {/* NOTE: 'name="user_email"' matches EmailJS default template variable */}
+                            <input type="email" name="user_email" placeholder="name@domain.com" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">PAYLOAD_DATA</label>
+                            {/* NOTE: 'name="message"' matches EmailJS default template variable */}
+                            <textarea name="message" placeholder="Describe your mission parameters..." required rows={3} className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10 resize-none"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
                         <button type="submit" disabled={status === 'sending' || status === 'success'} className="group relative overflow-hidden bg-white text-black px-8 py-4 rounded-full font-bold font-mono text-sm uppercase tracking-wider hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto">
-                            <span className="relative z-10 flex items-center gap-2">{status === 'idle' && <>SEND TRANSMISSION <ArrowRight size={16}/></>}{status === 'sending' && <>ENCRYPTING... <Loader2 size={16} className="animate-spin"/></>}{status === 'success' && <>SENT <ShieldCheck size={16}/></>}</span>
+                            <span className="relative z-10 flex items-center gap-2">{status === 'idle' && <>SEND TRANSMISSION <ArrowRight size={16}/></>}{status === 'sending' && <>ENCRYPTING... <Loader2 size={16} className="animate-spin"/></>}{status === 'success' && <>SENT <ShieldCheck size={16}/></>}{status === 'error' && <>FAILED <X size={16}/></>}</span>
                             {status === 'idle' && <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-0"></div>}
                         </button>
                     </form>
                 </div>
-
-                {/* FIX: Changed justification to center on desktop so it sits closer to the form */}
                 <div className="order-1 lg:order-2 flex justify-center lg:justify-center relative">
                     <div className="relative z-10">
                         <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] border border-white/5 rounded-full border-dashed z-0 pointer-events-none"/>
                         <motion.div animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] border border-white/5 rounded-full z-0 pointer-events-none"/>
-                        {/* Make sure you are using CoderDoodleCard here if you updated it! */}
-                        <motion.div whileHover={{ scale: 1.02, rotate: 0 }} initial={{ rotate: 3 }} className="relative z-10 py-10">
-                            <CoderDoodleCard />
-                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.02, rotate: 0 }} initial={{ rotate: 3 }} className="relative z-10 py-10"><CoderDoodleCard /></motion.div>
                     </div>
                 </div>
             </div>
@@ -462,155 +476,155 @@ export default function App() {
     };
 
     return (
-        <ReactLenis root>
-            <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-primary selection:text-black overflow-x-hidden relative">
-                <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: NOISE_SVG }}></div>
-                <CustomCursor />
-                <Toaster theme="dark" position="bottom-right" />
-                <Navbar user={user} setView={setView} view={view} onSuccess={handleGoogleSuccess} />
 
-                <main className="relative z-10">
-                    {view === 'home' && (
-                        <>
-                            <section className="min-h-screen flex flex-col justify-center items-center px-6 relative overflow-hidden">
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[150px] rounded-full pointer-events-none" />
-                                <motion.div initial={{opacity:0, y: 50}} animate={{opacity:1, y:0}} transition={{duration: 0.8, ease:"circOut"}} className="text-center max-w-5xl z-10">
-                                    <div className="flex items-center justify-center gap-2 mb-6 opacity-70">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"/>
-                                        <span className="font-mono text-xs tracking-[0.2em] uppercase">System Operational</span>
-                                    </div>
-                                    <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-white mb-8 leading-[0.9]">SCALE AT <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-400 to-gray-600">LIGHTSPEED</span></h1>
-                                    <div className="mt-12 w-full max-w-2xl mx-auto bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 transition-all focus-within:ring-2 ring-primary/50 focus-within:bg-black/80">
-                                        <div className="flex-1 flex items-center px-4">
-                                            <span className="text-primary font-mono mr-2">{'>'}</span>
-                                            <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://paste-your-link-here.com" className="w-full bg-transparent border-none outline-none text-white font-mono placeholder:text-gray-600 h-12"/>
-                                        </div>
-                                        <button onClick={handleShorten} disabled={loading} className="bg-white text-black font-bold font-mono px-8 py-3 rounded-xl hover:bg-primary transition-all flex items-center justify-center gap-2">
-                                            {loading ? <Loader2 className="animate-spin"/> : "DEPLOY"}
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-wrap justify-center gap-3 mt-4">
-                                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-                                            <span className="text-gray-500 font-mono text-xs mr-2">ALIAS/</span>
-                                            <input value={alias} onChange={e=>setAlias(e.target.value)} className="bg-transparent outline-none w-20 text-xs font-mono"/>
-                                        </div>
-                                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-                                            <Lock size={12} className="text-gray-500 mr-2"/>
-                                            <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="PASS" className="bg-transparent outline-none w-16 text-xs font-mono"/>
-                                        </div>
-                                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-                                            <Clock size={12} className="text-gray-500 mr-2"/>
-                                            <input type="datetime-local" value={expiry} onChange={e=>setExpiry(e.target.value)} className="bg-transparent outline-none w-24 text-xs text-gray-500"/>
-                                        </div>
-                                    </div>
-                                    <AnimatePresence>
-                                        {createdLink && (
-                                            <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="mt-8 inline-block">
-                                                <div className="bg-primary text-black p-1 font-mono text-xs font-bold uppercase mb-[-1px] ml-4 w-fit relative z-10">Success</div>
-                                                <div className="border border-white/20 bg-black/50 p-6 rounded-xl backdrop-blur-md flex items-center gap-6">
-                                                    <span className="font-mono text-xl text-primary underline">{createdLink}</span>
-                                                    <button onClick={()=>{navigator.clipboard.writeText(createdLink); toast.success("Copied")}}><Copy size={20}/></button>
-                                                </div>
-                                                {!user && ( <div className="mt-4"><GoogleLogin onSuccess={handleGoogleSuccess} theme="filled_black" shape="pill" size="medium" /></div> )}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
-                            </section>
-                            <Marquee text="ANALYTICS • SECURITY • SPEED • RELIABILITY •" />
-                            {!user && ( <ProUnlockSection onSuccess={handleGoogleSuccess} /> )}
-                            <FeatureCarousel />
-                            <AuthorSection />
-                            <footer className="h-[50vh] flex flex-col justify-end p-12 bg-neutral-950 border-t border-white/10">
-                                <h2 className="text-[12vw] font-black leading-none text-neutral-800 select-none">PULSE.IO</h2>
-                                <div className="flex justify-between items-end mt-8 text-neutral-500 font-mono text-sm">
-                                    <div>© 2026 KARTIK BHARGAVA ENGINEERING.</div>
-                                    <div className="flex gap-4"><a href="#" className="hover:text-white">GITHUB</a><a href="#" className="hover:text-white">LINKEDIN</a></div>
+        <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-primary selection:text-black overflow-x-hidden relative">
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: NOISE_SVG }}></div>
+            <CustomCursor />
+            <Toaster theme="dark" position="bottom-right" />
+            <Navbar user={user} setView={setView} view={view} onSuccess={handleGoogleSuccess} />
+
+            <main className="relative z-10">
+                {view === 'home' && (
+                    <>
+                        <section className="min-h-screen flex flex-col justify-center items-center px-6 relative overflow-hidden">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[150px] rounded-full pointer-events-none" />
+                            <motion.div initial={{opacity:0, y: 50}} animate={{opacity:1, y:0}} transition={{duration: 0.8, ease:"circOut"}} className="text-center max-w-5xl z-10">
+                                <div className="flex items-center justify-center gap-2 mb-6 opacity-70">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"/>
+                                    <span className="font-mono text-xs tracking-[0.2em] uppercase">System Operational</span>
                                 </div>
-                            </footer>
-                        </>
-                    )}
-                    {view === 'dashboard' && user && (
-                        <div className="pt-32 px-6 pb-20 max-w-7xl mx-auto min-h-screen">
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-between items-end mb-12 border-b border-white/10 pb-6">
-                                <div><h1 className="text-5xl font-bold tracking-tighter">Command Center</h1><p className="text-gray-500 font-mono mt-2">USER: {user.name.toUpperCase()}</p></div>
-                                <div className="text-right"><div className="text-4xl font-mono text-primary">{userLinks.length}</div><div className="text-xs text-gray-500">ACTIVE LINKS</div></div>
+                                <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-white mb-8 leading-[0.9]">SCALE AT <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-400 to-gray-600">LIGHTSPEED</span></h1>
+                                <div className="mt-12 w-full max-w-2xl mx-auto bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 transition-all focus-within:ring-2 ring-primary/50 focus-within:bg-black/80">
+                                    <div className="flex-1 flex items-center px-4">
+                                        <span className="text-primary font-mono mr-2">{'>'}</span>
+                                        <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://paste-your-link-here.com" className="w-full bg-transparent border-none outline-none text-white font-mono placeholder:text-gray-600 h-12"/>
+                                    </div>
+                                    <button onClick={handleShorten} disabled={loading} className="bg-white text-black font-bold font-mono px-8 py-3 rounded-xl hover:bg-primary transition-all flex items-center justify-center gap-2">
+                                        {loading ? <Loader2 className="animate-spin"/> : "DEPLOY"}
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-3 mt-4">
+                                    <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                                        <span className="text-gray-500 font-mono text-xs mr-2">ALIAS/</span>
+                                        <input value={alias} onChange={e=>setAlias(e.target.value)} className="bg-transparent outline-none w-20 text-xs font-mono"/>
+                                    </div>
+                                    <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                                        <Lock size={12} className="text-gray-500 mr-2"/>
+                                        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="PASS" className="bg-transparent outline-none w-16 text-xs font-mono"/>
+                                    </div>
+                                    <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                                        <Clock size={12} className="text-gray-500 mr-2"/>
+                                        <input type="datetime-local" value={expiry} onChange={e=>setExpiry(e.target.value)} className="bg-transparent outline-none w-24 text-xs text-gray-500"/>
+                                    </div>
+                                </div>
+                                <AnimatePresence>
+                                    {createdLink && (
+                                        <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="mt-8 inline-block">
+                                            <div className="bg-primary text-black p-1 font-mono text-xs font-bold uppercase mb-[-1px] ml-4 w-fit relative z-10">Success</div>
+                                            <div className="border border-white/20 bg-black/50 p-6 rounded-xl backdrop-blur-md flex items-center gap-6">
+                                                <span className="font-mono text-xl text-primary underline">{createdLink}</span>
+                                                <button onClick={()=>{navigator.clipboard.writeText(createdLink); toast.success("Copied")}}><Copy size={20}/></button>
+                                            </div>
+                                            {!user && ( <div className="mt-4"><GoogleLogin onSuccess={handleGoogleSuccess} theme="filled_black" shape="pill" size="medium" /></div> )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </motion.div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {userLinks.map((link, i) => (
-                                    <SpotlightCard key={link._id} className="h-64 p-6 flex flex-col justify-between">
-                                        <div className="flex justify-between items-start">
-                                            <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center border border-white/10"><Activity size={18} /></div>
-                                            <div className="flex gap-2">{link.password && <Lock size={14} className="text-amber-500"/>}<button onClick={() => { navigator.clipboard.writeText(`${API_BASE}/${link.shortCode}`); toast.success("Copied") }} className="hover:text-white text-gray-500 transition-colors"><Copy size={16}/></button></div>
-                                        </div>
-                                        <div><a href={link.originalUrl} target="_blank" className="text-2xl font-mono font-bold hover:text-primary transition-colors block mb-1">/{link.shortCode}</a><p className="text-xs text-gray-600 truncate font-mono">{link.originalUrl}</p></div>
-                                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                            <div className="flex items-baseline gap-1"><span className="text-xl font-bold">{link.clicks}</span><span className="text-[10px] text-gray-500">HITS</span></div>
-                                            <button onClick={() => fetchAnalytics(link.shortCode)} className="bg-white text-black px-4 py-1 rounded-full text-xs font-bold hover:bg-gray-200 transition-colors">ANALYZE</button>
-                                        </div>
-                                    </SpotlightCard>
-                                ))}
+                        </section>
+                        <Marquee text="ANALYTICS • SECURITY • SPEED • RELIABILITY •" />
+                        {!user && ( <ProUnlockSection onSuccess={handleGoogleSuccess} /> )}
+                        <FeatureCarousel />
+                        <AuthorSection />
+                        <footer className="h-[50vh] flex flex-col justify-end p-12 bg-neutral-950 border-t border-white/10">
+                            <h2 className="text-[12vw] font-black leading-none text-neutral-800 select-none">PULSE.IO</h2>
+                            <div className="flex justify-between items-end mt-8 text-neutral-500 font-mono text-sm">
+                                <div>© 2026 KARTIK BHARGAVA ENGINEERING.</div>
+                                <div className="flex gap-4"><a href="#" className="hover:text-white">GITHUB</a><a href="#" className="hover:text-white">LINKEDIN</a></div>
                             </div>
+                        </footer>
+                    </>
+                )}
+                {view === 'dashboard' && user && (
+                    <div className="pt-32 px-6 pb-20 max-w-7xl mx-auto min-h-screen">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-between items-end mb-12 border-b border-white/10 pb-6">
+                            <div><h1 className="text-5xl font-bold tracking-tighter">Command Center</h1><p className="text-gray-500 font-mono mt-2">USER: {user.name.toUpperCase()}</p></div>
+                            <div className="text-right"><div className="text-4xl font-mono text-primary">{userLinks.length}</div><div className="text-xs text-gray-500">ACTIVE LINKS</div></div>
+                        </motion.div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {userLinks.map((link, i) => (
+                                <SpotlightCard key={link._id} className="h-64 p-6 flex flex-col justify-between">
+                                    <div className="flex justify-between items-start">
+                                        <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center border border-white/10"><Activity size={18} /></div>
+                                        <div className="flex gap-2">{link.password && <Lock size={14} className="text-amber-500"/>}<button onClick={() => { navigator.clipboard.writeText(`${API_BASE}/${link.shortCode}`); toast.success("Copied") }} className="hover:text-white text-gray-500 transition-colors"><Copy size={16}/></button></div>
+                                    </div>
+                                    <div><a href={link.originalUrl} target="_blank" className="text-2xl font-mono font-bold hover:text-primary transition-colors block mb-1">/{link.shortCode}</a><p className="text-xs text-gray-600 truncate font-mono">{link.originalUrl}</p></div>
+                                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                        <div className="flex items-baseline gap-1"><span className="text-xl font-bold">{link.clicks}</span><span className="text-[10px] text-gray-500">HITS</span></div>
+                                        <button onClick={() => fetchAnalytics(link.shortCode)} className="bg-white text-black px-4 py-1 rounded-full text-xs font-bold hover:bg-gray-200 transition-colors">ANALYZE</button>
+                                    </div>
+                                </SpotlightCard>
+                            ))}
                         </div>
-                    )}
-                    <AnimatePresence>
-                        {selectedLinkStats && (
-                            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-2xl flex items-center justify-center p-4">
-                                <div className="bg-[#09090b] border border-white/10 w-full max-w-6xl h-[85vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
-                                    <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#09090b]">
-                                        <div className="flex items-center gap-4"><div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"/><span className="font-mono text-sm text-gray-400">LIVE_ANALYTICS_FEED</span></div>
-                                        <button onClick={()=>setSelectedLinkStats(null)} className="hover:rotate-90 transition-transform duration-300"><X/></button>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto p-8 bg-grid-pattern">
-                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                                            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">TOTAL CLICKS</div><div className="text-5xl font-black text-white">{selectedLinkStats.totalClicks}</div></div>
-                                            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">TOP LOCATION</div><div className="text-2xl font-bold text-primary truncate">{selectedLinkStats.countries[0]?.name || 'N/A'}</div></div>
-                                            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">DEVICE</div><div className="text-2xl font-bold text-white truncate">{selectedLinkStats.os[0]?.name || 'N/A'}</div></div>
-                                        </div>
-                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-                                            <div className="lg:col-span-2 bg-white/5 border border-white/10 p-6 rounded-2xl relative">
-                                                <div className="absolute top-6 right-6 font-mono text-xs text-gray-500">TRAFFIC_OVER_TIME</div>
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <AreaChart data={selectedLinkStats.timeline}>
-                                                        <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#fff" stopOpacity={0.2}/><stop offset="100%" stopColor="#fff" stopOpacity={0}/></linearGradient></defs>
-                                                        <Tooltip contentStyle={{background:'#000', border:'1px solid #333'}} itemStyle={{color:'#fff'}}/>
-                                                        <Area type="monotone" dataKey="value" stroke="#fff" strokeWidth={2} fill="url(#chartGrad)" />
-                                                    </AreaChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <RePieChart>
-                                                        <Pie data={selectedLinkStats.os} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                                                            {selectedLinkStats.os.map((entry, index) => ( <Cell key={`cell-${index}`} fill={['#fff', '#666', '#333', '#999'][index % 4]} /> ))}
-                                                        </Pie>
-                                                        <Tooltip contentStyle={{background:'#000', border:'1px solid #333'}}/>
-                                                        <Legend verticalAlign="bottom"/>
-                                                    </RePieChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </div>
-                                    </div>
+                    </div>
+                )}
+                <AnimatePresence>
+                    {selectedLinkStats && (
+                        <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-2xl flex items-center justify-center p-4">
+                            <div className="bg-[#09090b] border border-white/10 w-full max-w-6xl h-[85vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
+                                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#09090b]">
+                                    <div className="flex items-center gap-4"><div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"/><span className="font-mono text-sm text-gray-400">LIVE_ANALYTICS_FEED</span></div>
+                                    <button onClick={()=>setSelectedLinkStats(null)} className="hover:rotate-90 transition-transform duration-300"><X/></button>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                    {view === 'password-gate' && (
-                        <div className="min-h-screen flex items-center justify-center relative">
-                            <div className="absolute inset-0 bg-red-900/10 z-0 animate-pulse"></div>
-                            <div className="text-center z-10 border border-red-500/20 bg-black p-12 rounded-2xl backdrop-blur-xl">
-                                <Lock size={64} className="mx-auto text-red-500 mb-6"/>
-                                <h1 className="text-4xl font-black mb-2 tracking-tighter">CLASSIFIED</h1>
-                                <p className="font-mono text-red-400 mb-8">ENCRYPTED GATEWAY DETECTED</p>
-                                <div className="flex border border-white/20 rounded-lg overflow-hidden">
-                                    <input type="password" value={gatePass} onChange={e=>setGatePass(e.target.value)} placeholder="ACCESS KEY" className="bg-transparent p-4 outline-none font-mono text-center w-64"/>
-                                    <button onClick={verifyGate} className="bg-white text-black px-6 hover:bg-red-500 hover:text-white transition-colors">ENTER</button>
+                                <div className="flex-1 overflow-y-auto p-8 bg-grid-pattern">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">TOTAL CLICKS</div><div className="text-5xl font-black text-white">{selectedLinkStats.totalClicks}</div></div>
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">TOP LOCATION</div><div className="text-2xl font-bold text-primary truncate">{selectedLinkStats.countries[0]?.name || 'N/A'}</div></div>
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">DEVICE</div><div className="text-2xl font-bold text-white truncate">{selectedLinkStats.os[0]?.name || 'N/A'}</div></div>
+                                    </div>
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+                                        <div className="lg:col-span-2 bg-white/5 border border-white/10 p-6 rounded-2xl relative">
+                                            <div className="absolute top-6 right-6 font-mono text-xs text-gray-500">TRAFFIC_OVER_TIME</div>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <AreaChart data={selectedLinkStats.timeline}>
+                                                    <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#fff" stopOpacity={0.2}/><stop offset="100%" stopColor="#fff" stopOpacity={0}/></linearGradient></defs>
+                                                    <Tooltip contentStyle={{background:'#000', border:'1px solid #333'}} itemStyle={{color:'#fff'}}/>
+                                                    <Area type="monotone" dataKey="value" stroke="#fff" strokeWidth={2} fill="url(#chartGrad)" />
+                                                </AreaChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <RePieChart>
+                                                    <Pie data={selectedLinkStats.os} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                                        {selectedLinkStats.os.map((entry, index) => ( <Cell key={`cell-${index}`} fill={['#fff', '#666', '#333', '#999'][index % 4]} /> ))}
+                                                    </Pie>
+                                                    <Tooltip contentStyle={{background:'#000', border:'1px solid #333'}}/>
+                                                    <Legend verticalAlign="bottom"/>
+                                                </RePieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
-                </main>
-            </div>
-        </ReactLenis>
+                </AnimatePresence>
+                {view === 'password-gate' && (
+                    <div className="min-h-screen flex items-center justify-center relative">
+                        <div className="absolute inset-0 bg-red-900/10 z-0 animate-pulse"></div>
+                        <div className="text-center z-10 border border-red-500/20 bg-black p-12 rounded-2xl backdrop-blur-xl">
+                            <Lock size={64} className="mx-auto text-red-500 mb-6"/>
+                            <h1 className="text-4xl font-black mb-2 tracking-tighter">CLASSIFIED</h1>
+                            <p className="font-mono text-red-400 mb-8">ENCRYPTED GATEWAY DETECTED</p>
+                            <div className="flex border border-white/20 rounded-lg overflow-hidden">
+                                <input type="password" value={gatePass} onChange={e=>setGatePass(e.target.value)} placeholder="ACCESS KEY" className="bg-transparent p-4 outline-none font-mono text-center w-64"/>
+                                <button onClick={verifyGate} className="bg-white text-black px-6 hover:bg-red-500 hover:text-white transition-colors">ENTER</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </main>
+        </div>
+
     );
 }
