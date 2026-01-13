@@ -311,7 +311,7 @@ const AuthorSection = () => {
         setStatus('sending');
 
         // REPLACE THESE 3 STRINGS WITH YOUR ACTUAL KEYS FROM EMAILJS DASHBOARD
-        emailjs.sendForm('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', form.current, 'YOUR_PUBLIC_KEY')
+        emailjs.sendForm('srv-d5j7q2fpm1nc73fnlqc0', 'template_50rsga7', form.current, 'pkKB-iN6UyzoAGoTe')
             .then((result) => {
                 setStatus('success');
                 toast.success("Transmission Received", { description: "I will respond shortly." });
@@ -413,7 +413,7 @@ export default function App() {
     // --- DYNAMIC API CONFIGURATION ---
     const IS_LOCALHOST = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     // ⚠️ REPLACE THIS WITH YOUR REAL RENDER/VERCEL BACKEND URL
-    const PROD_API = "https://pulse-backend-api.onrender.com/";
+    const PROD_API = "https://pulse-backend-api.onrender.com";
     const API_BASE = IS_LOCALHOST ? "http://localhost:5000" : PROD_API;
 
     const handleGoogleSuccess = (credentialResponse) => {
