@@ -40,7 +40,7 @@ const io = new Server(httpServer, {
     cors: {
         origin: [
             "http://localhost:5173",
-            "https://pulse-io-psi.vercel.app"
+            "https://pulse-io-project.vercel.app"
         ],
         methods: ["GET", "POST"]
     }
