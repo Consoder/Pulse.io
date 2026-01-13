@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
-import { ReactLenis } from '@studio-freight/react-lenis';
 import axios from 'axios';
 import { Toaster, toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
@@ -476,7 +475,7 @@ export default function App() {
     };
 
     return (
-        <ReactLenis root>
+
             <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-primary selection:text-black overflow-x-hidden relative">
                 <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: NOISE_SVG }}></div>
                 <CustomCursor />
@@ -625,6 +624,6 @@ export default function App() {
                     )}
                 </main>
             </div>
-        </ReactLenis>
+
     );
 }
