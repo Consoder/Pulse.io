@@ -1,4 +1,4 @@
-// FORCE UPDATE V3 - LENIS REMOVED COMPLETELY
+// FORCE UPDATE V3 - FINAL CLEAN VERSION (NO LENIS)
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
 import axios from 'axios';
