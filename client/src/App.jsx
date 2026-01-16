@@ -469,15 +469,30 @@ export default function App() {
     const fetchAnalytics = async (shortCode) => {
         try {
             const res = await axios.get(`${API_BASE}/api/analytics/${shortCode}`);
-            const transform = (obj) => Object.entries(obj).map(([name, value]) => ({ name, value }));
+            const data = res.data || {}; // Safety Net 1: Ensure data object exists
+
+            // Safety Net 2: Helper to convert Objects to Arrays without crashing
+            const transform = (obj) => {
+                if (!obj || Object.keys(obj).length === 0) return [];
+                return Object.entries(obj).map(([name, value]) => ({ name, value }));
+            };
+
+            // Safety Net 3: Sort timeline only if data exists
+            const rawTimeline = transform(data.timeline);
+            const sortedTimeline = rawTimeline.sort((a, b) => new Date(a.name) - new Date(b.name));
+
             setSelectedLinkStats({
-                ...res.data,
-                countries: transform(res.data.countries),
-                os: transform(res.data.os),
-                browsers: transform(res.data.browsers),
-                timeline: transform(res.data.timeline).sort((a,b) => new Date(a.name) - new Date(b.name))
+                totalClicks: data.totalClicks || 0,
+                countries: transform(data.countries),
+                os: transform(data.os),
+                browsers: transform(data.browsers),
+                timeline: sortedTimeline
             });
-        } catch (err) { toast.error("Data Locked"); }
+        } catch (err) {
+            console.error("Analytics Error:", err);
+            // Don't crash the app, just show a toast
+            toast.error("Analytics Unavailable", { description: "No data found for this link yet." });
+        }
     };
 
     const handleShorten = async () => {
@@ -613,15 +628,34 @@ export default function App() {
                                         <div className="lg:col-span-2 bg-white/5 border border-white/10 p-6 rounded-2xl relative">
                                             <div className="absolute top-6 right-6 font-mono text-xs text-gray-500">TRAFFIC_OVER_TIME</div>
                                             <ResponsiveContainer width="100%" height="100%">
-                                                {/* 👇 THIS CHECK PREVENTS THE WHITE SCREEN CRASH 👇 */}
+                                                {/* 👇 THE FIX: Only render chart if we actually have data points 👇 */}
                                                 {selectedLinkStats.timeline && selectedLinkStats.timeline.length > 0 ? (
                                                     <AreaChart data={selectedLinkStats.timeline}>
-                                                        <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#fff" stopOpacity={0.2}/><stop offset="100%" stopColor="#fff" stopOpacity={0}/></linearGradient></defs>
-                                                        <Tooltip contentStyle={{background:'#000', border:'1px solid #333'}} itemStyle={{color:'#fff'}}/>
-                                                        <Area type="monotone" dataKey="value" stroke="#fff" strokeWidth={2} fill="url(#chartGrad)" />
+                                                        <defs>
+                                                            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="0%" stopColor="#fff" stopOpacity={0.2}/>
+                                                                <stop offset="100%" stopColor="#fff" stopOpacity={0}/>
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <Tooltip
+                                                            contentStyle={{background:'#09090b', border:'1px solid #333', borderRadius: '8px'}}
+                                                            itemStyle={{color:'#fff', fontFamily: 'monospace'}}
+                                                        />
+                                                        <Area
+                                                            type="monotone"
+                                                            dataKey="value"
+                                                            stroke="#fff"
+                                                            strokeWidth={2}
+                                                            fill="url(#chartGrad)"
+                                                            animationDuration={1500}
+                                                        />
                                                     </AreaChart>
                                                 ) : (
-                                                    <div className="flex items-center justify-center h-full text-gray-600 font-mono text-xs">NO_TIMELINE_DATA</div>
+                                                    // 👇 Fallback UI when there is no data yet
+                                                    <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-50">
+                                                        <BarChart3 size={48} className="mb-2" />
+                                                        <span className="font-mono text-xs tracking-widest">AWAITING_TRAFFIC_DATA</span>
+                                                    </div>
                                                 )}
                                             </ResponsiveContainer>
                                         </div>
