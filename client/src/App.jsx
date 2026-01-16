@@ -471,29 +471,37 @@ export default function App() {
     const fetchAnalytics = async (shortCode) => {
         try {
             const res = await axios.get(`${API_BASE}/api/analytics/${shortCode}`);
-            const data = res.data || {}; // Safety Net 1: Ensure data object exists
+            const data = res.data || {};
 
-            // Safety Net 2: Helper to convert Objects to Arrays without crashing
-            const transform = (obj) => {
-                if (!obj || Object.keys(obj).length === 0) return [];
-                return Object.entries(obj).map(([name, value]) => ({ name, value }));
+            // 👇👇👇 THIS IS THE MAGIC FIX 👇👇👇
+            const transform = (input) => {
+                // 1. If it's already an Array (from new backend), return it immediately!
+                if (Array.isArray(input)) return input;
+
+                // 2. If it's undefined/null, return empty array
+                if (!input) return [];
+
+                // 3. If it's an Object (from old backend), convert it
+                if (typeof input === 'object') {
+                    return Object.entries(input).map(([name, value]) => ({ name, value }));
+                }
+                return [];
             };
+            // 👆👆👆 END OF FIX 👆👆👆
 
-            // Safety Net 3: Sort timeline only if data exists
-            const rawTimeline = transform(data.timeline);
-            const sortedTimeline = rawTimeline.sort((a, b) => new Date(a.name) - new Date(b.name));
+            const timeline = transform(data.timeline).sort((a, b) => new Date(a.name) - new Date(b.name));
 
             setSelectedLinkStats({
                 totalClicks: data.totalClicks || 0,
                 countries: transform(data.countries),
                 os: transform(data.os),
                 browsers: transform(data.browsers),
-                timeline: sortedTimeline
+                timeline: timeline
             });
         } catch (err) {
             console.error("Analytics Error:", err);
-            // Don't crash the app, just show a toast
-            toast.error("Analytics Unavailable", { description: "No data found for this link yet." });
+            setSelectedLinkStats({ totalClicks: 0, countries: [], os: [], browsers: [], timeline: [] });
+            toast.error("Analytics Unavailable", { description: "Try clicking the link first!" });
         }
     };
 
