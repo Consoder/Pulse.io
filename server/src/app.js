@@ -11,7 +11,7 @@ import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
 import { errorHandler } from './middleware/errorHandler.js';
 import { logger } from './utils/logger.js';
-import './worker.js';
+
 
 import {
     shortenUrl,
