@@ -1,29 +1,25 @@
 import mongoose from 'mongoose';
-import { nanoid } from 'nanoid';
 
-const LinkSchema = new mongoose.Schema({
+const linkSchema = new mongoose.Schema({
     originalUrl: { type: String, required: true },
-    shortCode: { type: String, required: true, default: () => nanoid(6), unique: true },
-
-    // New Features
-    userId: { type: String, index: true }, // Links to Google ID
-    password: { type: String, default: null }, // Hashed password
-    expiresAt: { type: Date, default: null }, // Auto-expiry
-    clickLimit: { type: Number, default: null }, // Max clicks allowed
-
-    // Analytics
+    shortCode: { type: String, required: true, unique: true },
+    userId: { type: String, default: 'anonymous' },
+    password: { type: String }, // Optional password
     clicks: { type: Number, default: 0 },
+    expiresAt: { type: Date },
+
+    // 👇 THIS WAS MISSING! ADD THIS EXACTLY 👇
     visitHistory: [{
         timestamp: { type: Date, default: Date.now },
         ip: String,
-        userAgent: String,
-        referer: String
+        country: String,
+        city: String,
+        os: String,
+        device: String,
+        browser: String
     }],
+    // 👆 END OF NEW SECTION 👆
 
-    createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 
-// Auto-delete expired documents
-LinkSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-
-export const Link = mongoose.model('Link', LinkSchema);
+export const Link = mongoose.model('Link', linkSchema);
