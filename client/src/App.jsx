@@ -1,4 +1,4 @@
-// FORCE UPDATE V3 - FINAL CLEAN VERSION (NO LENIS IMPORT)
+// FORCE UPDATE V4 - MOBILE LOGIN & EXTERNAL FIX
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
 import axios from 'axios';
@@ -56,7 +56,7 @@ const Marquee = ({ text }) => (
     </div>
 );
 
-// --- NEW CODER DOODLE CARD ---
+// --- CODER DOODLE CARD ---
 const CoderDoodleCard = () => {
     const contributions = Array.from({ length: 52 }).map((_, i) => Math.floor(Math.random() * 4));
     const contribColors = ['bg-[#161b22]', 'bg-[#0e4429]', 'bg-[#006d32]', 'bg-[#26a641]', 'bg-[#39d353]'];
@@ -142,7 +142,17 @@ const ProUnlockSection = ({ onSuccess }) => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
                         <div className="p-[1px] rounded-full bg-gradient-to-r from-primary via-white to-primary relative group">
                             <div className="absolute inset-0 bg-primary blur-md opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-                            <div className="relative bg-black rounded-full p-1"><GoogleLogin onSuccess={onSuccess} theme="filled_black" shape="pill" size="large" text="continue_with"/></div>
+                            {/* Updated Google Login to be more responsive */}
+                            <div className="relative bg-black rounded-full p-1">
+                                <GoogleLogin
+                                    onSuccess={onSuccess}
+                                    theme="filled_black"
+                                    shape="pill"
+                                    size="large"
+                                    text="continue_with"
+                                    width="250"
+                                />
+                            </div>
                         </div>
                         <span className="text-xs text-gray-500 font-mono">// NO CREDIT CARD REQUIRED</span>
                     </div>
@@ -192,10 +202,25 @@ const Navbar = ({ user, setView, view, onSuccess }) => {
             </div>
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-16 left-0 right-0 bg-black border-b border-white/20 p-6 flex flex-col gap-4 font-mono md:hidden">
-                        <button onClick={() => { setView('home'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">CREATE LINK</button>
-                        <button onClick={() => { setView('dashboard'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">DASHBOARD</button>
-                        {!user && <div className="pt-2"><GoogleLogin onSuccess={onSuccess} theme="filled_black" shape="pill" size="medium" text="signin" /></div>}
+                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-16 left-0 right-0 bg-black border-b border-white/20 p-6 flex flex-col gap-4 font-mono md:hidden shadow-2xl z-50">
+                        {user ? (
+                            <>
+                                <button onClick={() => { setView('home'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">CREATE LINK</button>
+                                <button onClick={() => { setView('dashboard'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">DASHBOARD</button>
+                            </>
+                        ) : (
+                            // FIXED MOBILE SIGN IN LAYOUT
+                            <div className="pt-2 flex justify-center w-full">
+                                <GoogleLogin
+                                    onSuccess={onSuccess}
+                                    theme="filled_black"
+                                    shape="pill"
+                                    size="large"
+                                    text="signin"
+                                    width="250"
+                                />
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -303,54 +328,73 @@ const FeatureCarousel = () => {
 };
 
 const AuthorSection = () => {
-    const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+    const form = useRef();
     const [status, setStatus] = useState('idle');
 
-    const handleSubmit = (e) => {
+    // --- REAL EMAIL LOGIC RESTORED ---
+    const sendEmail = (e) => {
         e.preventDefault();
         setStatus('sending');
-        setTimeout(() => {
-            setStatus('success');
-            toast.success("Transmission Received", { description: "I will respond shortly." });
-            setFormState({ name: '', email: '', message: '' });
-            setTimeout(() => setStatus('idle'), 3000);
-        }, 2000);
+
+        // 👇 YOUR REAL CREDENTIALS
+        emailjs.sendForm('service_lfynwcc', 'template_50rsga7', form.current, 'pkKB-iN6UyzoAGoTe')
+            .then((result) => {
+                setStatus('success');
+                toast.success("Transmission Received", { description: "I will respond shortly." });
+                setTimeout(() => setStatus('idle'), 3000);
+            }, (error) => {
+                setStatus('error');
+                toast.error("Transmission Failed", { description: "Signal lost. Try again later." });
+                setTimeout(() => setStatus('idle'), 3000);
+            });
     };
 
     return (
         <section className="min-h-screen bg-[#050505] relative overflow-hidden flex items-center border-t border-white/5">
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full pointer-events-none"></div>
-
-            {/* FIX: Reduced gap from lg:gap-24 to lg:gap-12 */}
             <div className="container mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
 
+                {/* Left Side: Form */}
                 <div className="order-2 lg:order-1">
                     <div className="mb-12">
                         <div className="flex items-center gap-2 mb-4">
                             <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : "bg-red-500")}></div>
-                            <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{status === 'idle' ? 'Uplink Offline' : status === 'sending' ? 'Establishing Connection...' : 'Transmission Secure'}</span>
+                            <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{status === 'idle' ? 'Uplink Offline' : status === 'sending' ? 'Establishing Connection...' : status === 'success' ? 'Transmission Secure' : 'Connection Failed'}</span>
                         </div>
                         <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4">INITIATE<br/>CONTACT.</h2>
                         <p className="text-gray-400 text-lg max-w-md leading-relaxed">Ready to deploy? Send a signal directly to my terminal.</p>
                     </div>
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">OPERATOR_ID</label><input type="text" value={formState.name} onChange={(e) => setFormState({...formState, name: e.target.value})} placeholder="Enter Name" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">COMM_FREQUENCY</label><input type="email" value={formState.email} onChange={(e) => setFormState({...formState, email: e.target.value})} placeholder="name@domain.com" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
-                        <div className="group relative"><label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">PAYLOAD_DATA</label><textarea value={formState.message} onChange={(e) => setFormState({...formState, message: e.target.value})} placeholder="Describe your mission parameters..." required rows={3} className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10 resize-none"/><div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div></div>
+
+                    {/* ✅ CONNECTED TO sendEmail FUNCTION */}
+                    <form ref={form} onSubmit={sendEmail} className="space-y-8">
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">OPERATOR_ID</label>
+                            <input type="text" name="user_name" placeholder="Enter Name" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">COMM_FREQUENCY</label>
+                            <input type="email" name="user_email" placeholder="name@domain.com" required className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
+                        <div className="group relative">
+                            <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">PAYLOAD_DATA</label>
+                            <textarea name="message" placeholder="Describe your mission parameters..." required rows={3} className="w-full bg-transparent border-b border-white/20 py-4 text-xl font-bold text-white outline-none focus:border-primary transition-all placeholder:text-white/10 resize-none"/>
+                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                        </div>
                         <button type="submit" disabled={status === 'sending' || status === 'success'} className="group relative overflow-hidden bg-white text-black px-8 py-4 rounded-full font-bold font-mono text-sm uppercase tracking-wider hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto">
-                            <span className="relative z-10 flex items-center gap-2">{status === 'idle' && <>SEND TRANSMISSION <ArrowRight size={16}/></>}{status === 'sending' && <>ENCRYPTING... <Loader2 size={16} className="animate-spin"/></>}{status === 'success' && <>SENT <ShieldCheck size={16}/></>}</span>
+                            <span className="relative z-10 flex items-center gap-2">{status === 'idle' && <>SEND TRANSMISSION <ArrowRight size={16}/></>}{status === 'sending' && <>ENCRYPTING... <Loader2 size={16} className="animate-spin"/></>}{status === 'success' && <>SENT <ShieldCheck size={16}/></>}{status === 'error' && <>FAILED <X size={16}/></>}</span>
                             {status === 'idle' && <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-0"></div>}
                         </button>
                     </form>
                 </div>
 
-                {/* FIX: Changed justification to center on desktop so it sits closer to the form */}
+                {/* Right Side: Doodle */}
                 <div className="order-1 lg:order-2 flex justify-center lg:justify-center relative">
                     <div className="relative z-10">
                         <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] border border-white/5 rounded-full border-dashed z-0 pointer-events-none"/>
                         <motion.div animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] border border-white/5 rounded-full z-0 pointer-events-none"/>
-                        {/* Make sure you are using CoderDoodleCard here if you updated it! */}
                         <motion.div whileHover={{ scale: 1.02, rotate: 0 }} initial={{ rotate: 3 }} className="relative z-10 py-10">
                             <CoderDoodleCard />
                         </motion.div>
