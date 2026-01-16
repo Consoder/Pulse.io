@@ -1,4 +1,4 @@
-// FORCE UPDATE V4 - MOBILE LOGIN & EXTERNAL FIX
+// FORCE UPDATE V5 - PLATINUM EDITION (CRASH-PROOF)
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
 import axios from 'axios';
@@ -11,7 +11,7 @@ import emailjs from '@emailjs/browser';
 import {
     Activity, Zap, Command, Lock, Clock, BarChart3, Globe,
     X, ShieldCheck, Copy, Terminal, ChevronRight, ChevronLeft, Fingerprint, MapPin,
-    Loader2, Menu, ArrowRight
+    Loader2, Menu, ArrowRight, MousePointer2
 } from 'lucide-react';
 import {
     AreaChart, Area, PieChart as RePieChart,
@@ -331,20 +331,21 @@ const AuthorSection = () => {
     const form = useRef();
     const [status, setStatus] = useState('idle');
 
-    // --- REAL EMAIL LOGIC RESTORED ---
+    // --- REAL EMAIL LOGIC RESTORED (WITH YOUR KEYS) ---
     const sendEmail = (e) => {
         e.preventDefault();
         setStatus('sending');
 
-        // 👇 YOUR REAL CREDENTIALS
+        // 👇 YOUR REAL KEYS FROM YOUR SCREENSHOT
         emailjs.sendForm('service_lfynwcc', 'template_50rsga7', form.current, 'pkKB-iN6UyzoAGoTe')
             .then((result) => {
                 setStatus('success');
                 toast.success("Transmission Received", { description: "I will respond shortly." });
                 setTimeout(() => setStatus('idle'), 3000);
             }, (error) => {
+                console.error("Email Error:", error);
                 setStatus('error');
-                toast.error("Transmission Failed", { description: "Signal lost. Try again later." });
+                toast.error("Transmission Failed", { description: "Check console for details." });
                 setTimeout(() => setStatus('idle'), 3000);
             });
     };
@@ -359,7 +360,7 @@ const AuthorSection = () => {
                 <div className="order-2 lg:order-1">
                     <div className="mb-12">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : "bg-red-500")}></div>
+                            <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : status === 'error' ? "bg-red-500" : "bg-red-500")}></div>
                             <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{status === 'idle' ? 'Uplink Offline' : status === 'sending' ? 'Establishing Connection...' : status === 'success' ? 'Transmission Secure' : 'Connection Failed'}</span>
                         </div>
                         <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4">INITIATE<br/>CONTACT.</h2>
@@ -466,6 +467,7 @@ export default function App() {
         if (gateRequest) { setGateCode(gateRequest); setView('password-gate'); window.history.replaceState({}, document.title, window.location.pathname); }
     }, []);
 
+    // --- 🛡️ CRASH-PROOF ANALYTICS FETCH ---
     const fetchAnalytics = async (shortCode) => {
         try {
             const res = await axios.get(`${API_BASE}/api/analytics/${shortCode}`);
@@ -621,8 +623,8 @@ export default function App() {
                                 <div className="flex-1 overflow-y-auto p-8 bg-grid-pattern">
                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                                         <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">TOTAL CLICKS</div><div className="text-5xl font-black text-white">{selectedLinkStats.totalClicks}</div></div>
-                                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">TOP LOCATION</div><div className="text-2xl font-bold text-primary truncate">{selectedLinkStats.countries[0]?.name || 'N/A'}</div></div>
-                                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">DEVICE</div><div className="text-2xl font-bold text-white truncate">{selectedLinkStats.os[0]?.name || 'N/A'}</div></div>
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">TOP LOCATION</div><div className="text-2xl font-bold text-primary truncate">{selectedLinkStats.countries[0]?.name || 'Unknown Location'}</div></div>
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl"><div className="text-gray-500 text-xs font-mono mb-2">DEVICE</div><div className="text-2xl font-bold text-white truncate">{selectedLinkStats.os[0]?.name || 'Unknown Device'}</div></div>
                                     </div>
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
                                         <div className="lg:col-span-2 bg-white/5 border border-white/10 p-6 rounded-2xl relative">
