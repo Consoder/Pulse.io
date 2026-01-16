@@ -1,8 +1,8 @@
 import { Link } from '../models/Link.js';
-import { redis } from '../config/redis.js';
+// import { redis } from '../config/redis.js'; // ❌ Commented out to prevent crash
 import bcrypt from 'bcryptjs';
 import geoip from 'geoip-lite';
-import { UAParser } from 'ua-parser-js'; // ✅ Correct Import
+import { UAParser } from 'ua-parser-js';
 
 // --- 1. CREATE LINK ---
 export const shortenUrl = async (req, res) => {
@@ -18,6 +18,7 @@ export const shortenUrl = async (req, res) => {
         let hashedPassword = null;
         if (password) hashedPassword = await bcrypt.hash(password, 10);
 
+        // ✅ Create Link with Empty History Array
         const link = await Link.create({
             originalUrl: url,
             shortCode: customAlias || undefined,
@@ -27,7 +28,9 @@ export const shortenUrl = async (req, res) => {
             visitHistory: []
         });
 
-        if (global.redisClient) await redis.set(`link:${link.shortCode}`, url, 'EX', 86400);
+        // ❌ Disabled Redis to prevent "Server Error"
+        // if (global.redisClient) await redis.set(`link:${link.shortCode}`, url, 'EX', 86400);
+
         res.status(201).json(link);
     } catch (err) {
         console.error("Shorten Error:", err);
@@ -35,7 +38,7 @@ export const shortenUrl = async (req, res) => {
     }
 };
 
-// --- 2. HANDLE REDIRECT (FIXED DATA CAPTURE) ---
+// --- 2. HANDLE REDIRECT ---
 export const redirectUrl = async (req, res) => {
     const { code } = req.params;
     const { password } = req.query;
@@ -53,26 +56,18 @@ export const redirectUrl = async (req, res) => {
             if (!isValid) return res.status(401).json({ error: "Invalid Password" });
         }
 
-        // --- 🔍 ROBUST DATA CAPTURE ---
-
-        // 1. Get IP (Handle Proxies like Render/Vercel)
+        // --- 🔍 ANALYTICS CAPTURE ---
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        if (ip && typeof ip === 'string' && ip.includes(',')) {
-            ip = ip.split(',')[0].trim();
-        }
+        if (ip && typeof ip === 'string' && ip.includes(',')) ip = ip.split(',')[0].trim();
 
-        // 2. Parse User Agent (The Fix)
-        const uaString = req.headers['user-agent'] || '';
-        const parser = new UAParser(uaString);
-        const result = parser.getResult();
+        // Localhost fix for testing
+        if (ip === '::1' || ip === '127.0.0.1') ip = '8.8.8.8'; // Simulate IP for testing
 
-        // 3. Get Location
         const geo = geoip.lookup(ip) || {};
+        const ua = new UAParser(req.headers['user-agent']);
+        const result = ua.getResult();
 
-        // 4. Console Log for Debugging (Check Render Logs!)
-        console.log(`[HIT] Code: ${code} | IP: ${ip} | OS: ${result.os.name} | Device: ${result.device.type}`);
-
-        // 5. Safe Push to DB
+        // Safe Push
         if (!link.visitHistory) link.visitHistory = [];
 
         link.clicks++;
@@ -81,9 +76,9 @@ export const redirectUrl = async (req, res) => {
             ip: ip,
             country: geo.country || 'Unknown',
             city: geo.city || 'Unknown',
-            os: result.os.name || 'Unknown', // ✅ Fixed
-            browser: result.browser.name || 'Unknown', // ✅ Fixed
-            device: result.device.type || 'Desktop' // ✅ Fixed (Libraries return undefined for Desktop)
+            os: result.os.name || 'Unknown',
+            device: result.device.type || 'Desktop', // Detects Mobile/Tablet
+            browser: result.browser.name || 'Unknown'
         });
 
         await link.save();
@@ -100,8 +95,7 @@ export const redirectUrl = async (req, res) => {
 // --- 3. GET STATS ---
 export const getUserStats = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const links = await Link.find({ userId }).sort({ createdAt: -1 });
+        const links = await Link.find({ userId: req.params.userId }).sort({ createdAt: -1 });
         res.json(links);
     } catch (err) { res.status(500).json({ error: "Fetch Error" }); }
 };
@@ -113,6 +107,7 @@ export const getLinkAnalytics = async (req, res) => {
         const link = await Link.findOne({ shortCode: code });
         if (!link) return res.status(404).json({ error: "Not found" });
 
+        // ✅ SAFE DATA HANDLING
         const history = link.visitHistory || [];
 
         const agg = (field) => {
@@ -124,7 +119,6 @@ export const getLinkAnalytics = async (req, res) => {
             return Object.entries(counts).map(([name, value]) => ({ name, value }));
         };
 
-        const timeline = [];
         const dateMap = {};
         history.forEach(v => {
             if(v.timestamp) {
@@ -132,7 +126,7 @@ export const getLinkAnalytics = async (req, res) => {
                 dateMap[date] = (dateMap[date] || 0) + 1;
             }
         });
-        Object.keys(dateMap).forEach(date => timeline.push({ name: date, value: dateMap[date] }));
+        const timeline = Object.keys(dateMap).map(date => ({ name: date, value: dateMap[date] }));
 
         res.json({
             totalClicks: link.clicks,
