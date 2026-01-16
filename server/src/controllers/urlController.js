@@ -1,8 +1,13 @@
 import { Link } from '../models/Link.js';
-// import { redis } from '../config/redis.js'; // ❌ Commented out to prevent crash
 import bcrypt from 'bcryptjs';
 import geoip from 'geoip-lite';
 import { UAParser } from 'ua-parser-js';
+import crypto from 'crypto';
+
+// ✅ Helper to generate random 6-char code
+const generateShortCode = () => {
+    return crypto.randomBytes(4).toString('hex').slice(0, 6);
+};
 
 // --- 1. CREATE LINK ---
 export const shortenUrl = async (req, res) => {
@@ -10,7 +15,19 @@ export const shortenUrl = async (req, res) => {
         const { url, userId, password, expiresAt, customAlias } = req.body;
         if(!url) return res.status(400).json({ error: "URL is required" });
 
-        if (customAlias) {
+        let finalShortCode = customAlias;
+
+        // If no alias, generate one
+        if (!finalShortCode) {
+            finalShortCode = generateShortCode();
+            // Ensure uniqueness (simple check)
+            let exists = await Link.findOne({ shortCode: finalShortCode });
+            while (exists) {
+                finalShortCode = generateShortCode();
+                exists = await Link.findOne({ shortCode: finalShortCode });
+            }
+        } else {
+            // Check custom alias availability
             const exists = await Link.findOne({ shortCode: customAlias });
             if (exists) return res.status(409).json({ error: "Alias is already taken" });
         }
@@ -18,23 +35,19 @@ export const shortenUrl = async (req, res) => {
         let hashedPassword = null;
         if (password) hashedPassword = await bcrypt.hash(password, 10);
 
-        // ✅ Create Link with Empty History Array
         const link = await Link.create({
             originalUrl: url,
-            shortCode: customAlias || undefined,
+            shortCode: finalShortCode, // ✅ Now always has a value
             userId: userId || 'anonymous',
             password: hashedPassword,
             expiresAt: expiresAt ? new Date(expiresAt) : null,
             visitHistory: []
         });
 
-        // ❌ Disabled Redis to prevent "Server Error"
-        // if (global.redisClient) await redis.set(`link:${link.shortCode}`, url, 'EX', 86400);
-
         res.status(201).json(link);
     } catch (err) {
         console.error("Shorten Error:", err);
-        res.status(500).json({ error: "Server Error" });
+        res.status(500).json({ error: "Server Error: " + err.message });
     }
 };
 
@@ -56,18 +69,14 @@ export const redirectUrl = async (req, res) => {
             if (!isValid) return res.status(401).json({ error: "Invalid Password" });
         }
 
-        // --- 🔍 ANALYTICS CAPTURE ---
+        // --- ANALYTICS ---
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        if (ip && typeof ip === 'string' && ip.includes(',')) ip = ip.split(',')[0].trim();
-
-        // Localhost fix for testing
-        if (ip === '::1' || ip === '127.0.0.1') ip = '8.8.8.8'; // Simulate IP for testing
+        if (ip && typeof ip === 'string') ip = ip.split(',')[0].trim();
 
         const geo = geoip.lookup(ip) || {};
         const ua = new UAParser(req.headers['user-agent']);
         const result = ua.getResult();
 
-        // Safe Push
         if (!link.visitHistory) link.visitHistory = [];
 
         link.clicks++;
@@ -77,7 +86,7 @@ export const redirectUrl = async (req, res) => {
             country: geo.country || 'Unknown',
             city: geo.city || 'Unknown',
             os: result.os.name || 'Unknown',
-            device: result.device.type || 'Desktop', // Detects Mobile/Tablet
+            device: result.device.type || 'Desktop',
             browser: result.browser.name || 'Unknown'
         });
 
@@ -107,7 +116,6 @@ export const getLinkAnalytics = async (req, res) => {
         const link = await Link.findOne({ shortCode: code });
         if (!link) return res.status(404).json({ error: "Not found" });
 
-        // ✅ SAFE DATA HANDLING
         const history = link.visitHistory || [];
 
         const agg = (field) => {
