@@ -1,4 +1,4 @@
-// FORCE UPDATE V5 - PLATINUM EDITION (CRASH-PROOF)
+// FORCE UPDATE V6 - FINAL PRODUCTION FIX (NO BLEEDING)
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
 import axios from 'axios';
@@ -360,7 +360,7 @@ const AuthorSection = () => {
                 <div className="order-2 lg:order-1">
                     <div className="mb-12">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : status === 'error' ? "bg-red-500" : "bg-red-500")}></div>
+                            <div className={cn("w-2 h-2 rounded-full", status === 'sending' ? "bg-yellow-500 animate-ping" : status === 'success' ? "bg-green-500" : "bg-red-500")}></div>
                             <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{status === 'idle' ? 'Uplink Offline' : status === 'sending' ? 'Establishing Connection...' : status === 'success' ? 'Transmission Secure' : 'Connection Failed'}</span>
                         </div>
                         <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4">INITIATE<br/>CONTACT.</h2>
