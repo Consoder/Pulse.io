@@ -613,11 +613,16 @@ export default function App() {
                                         <div className="lg:col-span-2 bg-white/5 border border-white/10 p-6 rounded-2xl relative">
                                             <div className="absolute top-6 right-6 font-mono text-xs text-gray-500">TRAFFIC_OVER_TIME</div>
                                             <ResponsiveContainer width="100%" height="100%">
-                                                <AreaChart data={selectedLinkStats.timeline}>
-                                                    <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#fff" stopOpacity={0.2}/><stop offset="100%" stopColor="#fff" stopOpacity={0}/></linearGradient></defs>
-                                                    <Tooltip contentStyle={{background:'#000', border:'1px solid #333'}} itemStyle={{color:'#fff'}}/>
-                                                    <Area type="monotone" dataKey="value" stroke="#fff" strokeWidth={2} fill="url(#chartGrad)" />
-                                                </AreaChart>
+                                                {/* 👇 THIS CHECK PREVENTS THE WHITE SCREEN CRASH 👇 */}
+                                                {selectedLinkStats.timeline && selectedLinkStats.timeline.length > 0 ? (
+                                                    <AreaChart data={selectedLinkStats.timeline}>
+                                                        <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#fff" stopOpacity={0.2}/><stop offset="100%" stopColor="#fff" stopOpacity={0}/></linearGradient></defs>
+                                                        <Tooltip contentStyle={{background:'#000', border:'1px solid #333'}} itemStyle={{color:'#fff'}}/>
+                                                        <Area type="monotone" dataKey="value" stroke="#fff" strokeWidth={2} fill="url(#chartGrad)" />
+                                                    </AreaChart>
+                                                ) : (
+                                                    <div className="flex items-center justify-center h-full text-gray-600 font-mono text-xs">NO_TIMELINE_DATA</div>
+                                                )}
                                             </ResponsiveContainer>
                                         </div>
                                         <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
