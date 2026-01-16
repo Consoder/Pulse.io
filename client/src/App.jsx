@@ -1,4 +1,4 @@
-// FORCE UPDATE V9 - THE FINAL FIX (SMART DATA HANDLING)
+// FORCE UPDATE V12 - THE REAL FIX (DATA TYPE CHECK ADDED)
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
 import axios from 'axios';
