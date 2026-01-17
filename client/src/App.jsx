@@ -1,4 +1,4 @@
-// FORCE UPDATE V12 - THE REAL FIX (DATA TYPE CHECK ADDED)
+// FORCE UPDATE V20 - ADDED LANDING GRAFFITI + V19 LOGIC
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useTransform } from 'framer-motion';
 import axios from 'axios';
@@ -11,7 +11,7 @@ import emailjs from '@emailjs/browser';
 import {
     Activity, Zap, Command, Lock, Clock, BarChart3, Globe,
     X, ShieldCheck, Copy, Terminal, ChevronRight, ChevronLeft, Fingerprint, MapPin,
-    Loader2, Menu, ArrowRight, MousePointer2
+    Loader2, Menu, ArrowRight, MousePointer2, AlertTriangle, Tag, Link as LinkIcon, Smartphone, Monitor, Laptop
 } from 'lucide-react';
 import {
     AreaChart, Area, PieChart as RePieChart,
@@ -40,6 +40,123 @@ const CustomCursor = () => {
     );
 };
 
+// --- ✨ NEW COMPONENT: LANDING GRAFFITI ---
+const LandingGraffiti = () => (
+    <motion.div
+        initial={{ opacity: 0, y: 10, rotate: -5 }}
+        animate={{ opacity: 1, y: 0, rotate: 0 }}
+        transition={{ delay: 0.5, duration: 0.8, type: "spring" }}
+        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 flex flex-col items-center pointer-events-none z-20 w-64"
+    >
+        <div className="relative">
+            {/* Hand Drawn Arrow */}
+            <svg width="50" height="50" viewBox="0 0 100 100" className="absolute -top-8 -right-12 text-yellow-400 rotate-12" style={{filter: "drop-shadow(0 0 5px rgba(250,204,21,0.5))"}}>
+                <motion.path
+                    d="M 80 80 Q 50 70 20 20"
+                    fill="transparent"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1, delay: 1, ease: "easeInOut" }}
+                />
+                <motion.path
+                    d="M 10 30 L 20 20 L 35 25"
+                    fill="transparent"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.5, delay: 1.8 }}
+                />
+            </svg>
+
+            {/* Text Sticker */}
+            <motion.div
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="font-mono text-[10px] md:text-xs text-gray-300 -rotate-2 border border-white/10 bg-[#0a0a0a]/90 px-4 py-2 rounded-lg backdrop-blur-md shadow-xl relative"
+            >
+                <div className="absolute -top-1 -left-1 w-2 h-2 bg-cyan-500 rounded-full animate-ping"/>
+                <span className="text-yellow-400 font-bold text-lg mr-1">⚡</span>
+                Unlock <span className="text-cyan-400 font-black tracking-wider">GOD MODE</span> Analytics
+            </motion.div>
+        </div>
+    </motion.div>
+);
+
+const GraffitiWarning = ({ onClose }) => (
+    <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center cursor-pointer overflow-hidden"
+    >
+        <div className="relative w-full max-w-4xl text-center select-none">
+            <motion.div animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.1, 1] }} transition={{ duration: 0.5, repeat: Infinity }} className="absolute inset-0 bg-yellow-500/20 blur-[100px] rounded-full mix-blend-overlay"/>
+            <motion.div
+                initial={{ scale: 0.2, rotate: -20 }}
+                animate={{ scale: 1, rotate: -5 }}
+                transition={{ type: "spring", bounce: 0.5 }}
+                className="relative z-10"
+            >
+                <h1 className="text-[12vw] font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 via-red-500 to-pink-500 leading-none drop-shadow-[10px_10px_0_rgba(255,255,255,0.1)] font-[Impact]" style={{ WebkitTextStroke: "2px white" }}>
+                    NO ALIAS?
+                </h1>
+                <div className="bg-white text-black text-2xl md:text-5xl font-black font-mono py-2 px-8 inline-block transform rotate-3 -mt-4 border-4 border-black shadow-[8px_8px_0px_0px_#ef4444]">
+                    ADD YOUR NICKNAME!
+                </div>
+            </motion.div>
+        </div>
+    </motion.div>
+);
+// --- 🎨 NEW COMPONENT: GRAFFITI ARROW ---
+const GraffitiArrow = () => (
+    <motion.div
+        initial={{ opacity: 0, x: 20, rotate: 10 }}
+        animate={{ opacity: 1, x: 0, rotate: 0 }}
+        transition={{ delay: 0.5, duration: 0.8, type: "spring" }}
+        className="absolute left-[110%] top-1/2 -translate-y-1/2 w-48 pointer-events-none z-50 hidden md:block"
+    >
+        <div className="relative">
+            {/* The Sticker Text */}
+            <motion.div
+                animate={{ rotate: [0, 5, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="bg-[#ffe600] text-black font-black font-mono text-xs px-3 py-2 -rotate-12 shadow-[4px_4px_0px_rgba(255,255,255,0.2)] border-2 border-black whitespace-nowrap inline-block mb-2"
+            >
+                ✨ UNLOCK GOD MODE!
+            </motion.div>
+
+            {/* The Arrow */}
+            <svg width="80" height="40" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white transform rotate-180 -ml-4 mt-1">
+                <motion.path
+                    d="M10 10 C 40 40, 70 10, 90 30"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1, delay: 1 }}
+                />
+                <motion.path
+                    d="M80 35 L 90 30 L 95 20"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.5, delay: 1.8 }}
+                />
+            </svg>
+        </div>
+    </motion.div>
+);
 const Marquee = ({ text }) => (
     <div className="relative flex overflow-x-hidden bg-primary text-black py-3 font-mono font-bold text-lg border-y border-black">
         <motion.div
@@ -56,7 +173,6 @@ const Marquee = ({ text }) => (
     </div>
 );
 
-// --- CODER DOODLE CARD ---
 const CoderDoodleCard = () => {
     const contributions = Array.from({ length: 52 }).map((_, i) => Math.floor(Math.random() * 4));
     const contribColors = ['bg-[#161b22]', 'bg-[#0e4429]', 'bg-[#006d32]', 'bg-[#26a641]', 'bg-[#39d353]'];
@@ -142,7 +258,6 @@ const ProUnlockSection = ({ onSuccess }) => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
                         <div className="p-[1px] rounded-full bg-gradient-to-r from-primary via-white to-primary relative group">
                             <div className="absolute inset-0 bg-primary blur-md opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-                            {/* Updated Google Login to be more responsive */}
                             <div className="relative bg-black rounded-full p-1">
                                 <GoogleLogin
                                     onSuccess={onSuccess}
@@ -209,7 +324,6 @@ const Navbar = ({ user, setView, view, onSuccess }) => {
                                 <button onClick={() => { setView('dashboard'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">DASHBOARD</button>
                             </>
                         ) : (
-                            // FIXED MOBILE SIGN IN LAYOUT
                             <div className="pt-2 flex justify-center w-full">
                                 <GoogleLogin
                                     onSuccess={onSuccess}
@@ -331,12 +445,11 @@ const AuthorSection = () => {
     const form = useRef();
     const [status, setStatus] = useState('idle');
 
-    // --- REAL EMAIL LOGIC RESTORED (WITH YOUR KEYS) ---
+    // --- REAL EMAIL LOGIC WITH PRESERVED KEYS ---
     const sendEmail = (e) => {
         e.preventDefault();
         setStatus('sending');
 
-        // 👇 YOUR REAL KEYS FROM YOUR SCREENSHOT
         emailjs.sendForm('service_lfynwcc', 'template_50rsga7', form.current, 'pkKB-iN6UyzoAGoTe')
             .then((result) => {
                 setStatus('success');
@@ -356,7 +469,6 @@ const AuthorSection = () => {
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full pointer-events-none"></div>
             <div className="container mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
 
-                {/* Left Side: Form */}
                 <div className="order-2 lg:order-1">
                     <div className="mb-12">
                         <div className="flex items-center gap-2 mb-4">
@@ -367,7 +479,6 @@ const AuthorSection = () => {
                         <p className="text-gray-400 text-lg max-w-md leading-relaxed">Ready to deploy? Send a signal directly to my terminal.</p>
                     </div>
 
-                    {/* ✅ CONNECTED TO sendEmail FUNCTION */}
                     <form ref={form} onSubmit={sendEmail} className="space-y-8">
                         <div className="group relative">
                             <label className="text-xs font-mono text-gray-500 mb-2 block group-focus-within:text-primary transition-colors">OPERATOR_ID</label>
@@ -391,7 +502,6 @@ const AuthorSection = () => {
                     </form>
                 </div>
 
-                {/* Right Side: Doodle */}
                 <div className="order-1 lg:order-2 flex justify-center lg:justify-center relative">
                     <div className="relative z-10">
                         <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] border border-white/5 rounded-full border-dashed z-0 pointer-events-none"/>
@@ -431,7 +541,7 @@ export default function App() {
     const [user, setUser] = useState(null);
     const [view, setView] = useState('home');
     const [url, setUrl] = useState('');
-    const [alias, setAlias] = useState('');
+    const [alias, setAlias] = useState(''); // ALIAS RESTORED
     const [password, setPassword] = useState('');
     const [expiry, setExpiry] = useState('');
     const [createdLink, setCreatedLink] = useState(null);
@@ -440,10 +550,9 @@ export default function App() {
     const [selectedLinkStats, setSelectedLinkStats] = useState(null);
     const [gateCode, setGateCode] = useState('');
     const [gatePass, setGatePass] = useState('');
+    const [showGraffiti, setShowGraffiti] = useState(false); // GRAFFITI STATE
 
-    // --- DYNAMIC API CONFIGURATION ---
     const IS_LOCALHOST = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    // ⚠️ REPLACE THIS WITH YOUR REAL RENDER/VERCEL BACKEND URL
     const PROD_API = "https://pulse-backend-api.onrender.com";
     const API_BASE = IS_LOCALHOST ? "http://localhost:5000" : PROD_API;
 
@@ -467,27 +576,20 @@ export default function App() {
         if (gateRequest) { setGateCode(gateRequest); setView('password-gate'); window.history.replaceState({}, document.title, window.location.pathname); }
     }, []);
 
-    // --- 🛡️ CRASH-PROOF ANALYTICS FETCH ---
+    // --- 🛡️ CRASH-PROOF ANALYTICS FETCH (V11 FIX) ---
     const fetchAnalytics = async (shortCode) => {
         try {
             const res = await axios.get(`${API_BASE}/api/analytics/${shortCode}`);
             const data = res.data || {};
 
-            // 👇👇👇 THIS IS THE MAGIC FIX 👇👇👇
             const transform = (input) => {
-                // 1. If it's already an Array (from new backend), return it immediately!
                 if (Array.isArray(input)) return input;
-
-                // 2. If it's undefined/null, return empty array
                 if (!input) return [];
-
-                // 3. If it's an Object (from old backend), convert it
                 if (typeof input === 'object') {
                     return Object.entries(input).map(([name, value]) => ({ name, value }));
                 }
                 return [];
             };
-            // 👆👆👆 END OF FIX 👆👆👆
 
             const timeline = transform(data.timeline).sort((a, b) => new Date(a.name) - new Date(b.name));
 
@@ -507,6 +609,15 @@ export default function App() {
 
     const handleShorten = async () => {
         if (!url) return toast.error("Command Error", { description: "Target URL required" });
+
+        // --- 🔒 ALIAS LOCK SYSTEM ---
+        if (!alias || alias.trim() === '') {
+            setShowGraffiti(true);
+            // Hide graffiti after 3 seconds automatically, or user can click to close
+            setTimeout(() => setShowGraffiti(false), 3500);
+            return;
+        }
+
         setLoading(true);
         try {
             const payload = { url, userId: user?.sub || 'anonymous', password: password || null, expiresAt: expiry || null, customAlias: alias || null };
@@ -534,6 +645,12 @@ export default function App() {
             <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: NOISE_SVG }}></div>
             <CustomCursor />
             <Toaster theme="dark" position="bottom-right" />
+
+            {/* 🎨 GRAFFITI WARNING OVERLAY */}
+            <AnimatePresence>
+                {showGraffiti && <GraffitiWarning onClose={() => setShowGraffiti(false)} />}
+            </AnimatePresence>
+
             <Navbar user={user} setView={setView} view={view} onSuccess={handleGoogleSuccess} />
 
             <main className="relative z-10">
@@ -541,35 +658,50 @@ export default function App() {
                     <>
                         <section className="min-h-screen flex flex-col justify-center items-center px-6 relative overflow-hidden">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[150px] rounded-full pointer-events-none" />
-                            <motion.div initial={{opacity:0, y: 50}} animate={{opacity:1, y:0}} transition={{duration: 0.8, ease:"circOut"}} className="text-center max-w-5xl z-10">
+                            <motion.div initial={{opacity:0, y: 50}} animate={{opacity:1, y:0}} transition={{duration: 0.8, ease:"circOut"}} className="text-center max-w-5xl z-10 w-full">
                                 <div className="flex items-center justify-center gap-2 mb-6 opacity-70">
                                     <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"/>
                                     <span className="font-mono text-xs tracking-[0.2em] uppercase">System Operational</span>
                                 </div>
                                 <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-white mb-8 leading-[0.9]">SCALE AT <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-400 to-gray-600">LIGHTSPEED</span></h1>
+
+                                {/* 1. URL INPUT ROW */}
                                 <div className="mt-12 w-full max-w-2xl mx-auto bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 transition-all focus-within:ring-2 ring-primary/50 focus-within:bg-black/80">
                                     <div className="flex-1 flex items-center px-4">
                                         <span className="text-primary font-mono mr-2">{'>'}</span>
                                         <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://paste-your-link-here.com" className="w-full bg-transparent border-none outline-none text-white font-mono placeholder:text-gray-600 h-12"/>
                                     </div>
-                                    <button onClick={handleShorten} disabled={loading} className="bg-white text-black font-bold font-mono px-8 py-3 rounded-xl hover:bg-primary transition-all flex items-center justify-center gap-2">
+                                    <button onClick={handleShorten} disabled={loading} className="bg-white text-black font-bold font-mono px-8 py-3 rounded-xl hover:bg-primary transition-all flex items-center justify-center gap-2 whitespace-nowrap">
                                         {loading ? <Loader2 className="animate-spin"/> : "DEPLOY"}
                                     </button>
                                 </div>
-                                <div className="flex flex-wrap justify-center gap-3 mt-4">
-                                    <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-                                        <span className="text-gray-500 font-mono text-xs mr-2">ALIAS/</span>
-                                        <input value={alias} onChange={e=>setAlias(e.target.value)} className="bg-transparent outline-none w-20 text-xs font-mono"/>
+
+                                {/* 2. DEDICATED ALIAS ROW (LARGE & SEPARATE) */}
+                                <div className="mt-4 w-full max-w-lg mx-auto">
+                                    <div className={cn("flex items-center bg-white/5 border border-white/10 p-1 rounded-xl transition-all duration-300", !alias && showGraffiti ? "border-red-500 bg-red-500/10 shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-105" : "hover:bg-white/10")}>
+                                        <div className="pl-4 pr-2 text-gray-500 font-mono text-lg select-none">pulse.io/</div>
+                                        <input
+                                            value={alias}
+                                            onChange={e=>setAlias(e.target.value)}
+                                            placeholder="enter-your-alias-here"
+                                            className="w-full bg-transparent border-none outline-none text-white font-bold font-mono text-lg h-12 placeholder:text-white/20"
+                                        />
+                                        {!alias && showGraffiti && <AlertTriangle className="text-red-500 mr-4 animate-pulse" />}
                                     </div>
+                                </div>
+
+                                {/* 3. OPTIONAL SETTINGS ROW (SMALLER & SUBTLE) */}
+                                <div className="flex flex-wrap justify-center gap-3 mt-4 opacity-70 hover:opacity-100 transition-opacity">
                                     <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
                                         <Lock size={12} className="text-gray-500 mr-2"/>
-                                        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="PASS" className="bg-transparent outline-none w-16 text-xs font-mono"/>
+                                        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="OPTIONAL PASS" className="bg-transparent outline-none w-28 text-xs font-mono"/>
                                     </div>
                                     <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
                                         <Clock size={12} className="text-gray-500 mr-2"/>
-                                        <input type="datetime-local" value={expiry} onChange={e=>setExpiry(e.target.value)} className="bg-transparent outline-none w-24 text-xs text-gray-500"/>
+                                        <input type="datetime-local" value={expiry} onChange={e=>setExpiry(e.target.value)} className="bg-transparent outline-none w-32 text-xs text-gray-500"/>
                                     </div>
                                 </div>
+
                                 <AnimatePresence>
                                     {createdLink && (
                                         <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="mt-8 inline-block">
@@ -578,8 +710,30 @@ export default function App() {
                                                 <span className="font-mono text-xl text-primary underline">{createdLink}</span>
                                                 <button onClick={()=>{navigator.clipboard.writeText(createdLink); toast.success("Copied")}}><Copy size={20}/></button>
                                             </div>
-                                            {!user && ( <div className="mt-4"><GoogleLogin onSuccess={handleGoogleSuccess} theme="filled_black" shape="pill" size="medium" /></div> )}
-                                        </motion.div>
+                                            {/* --- 🎨 GRAFFITI ARROW IMPLEMENTATION --- */}
+                                            {!user && (
+                                                <div className="mt-8 relative z-50 flex justify-center w-full">
+                                                    {/* The Button Container */}
+                                                    <div className="relative group">
+                                                        {/* Glow Effect */}
+                                                        <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-pink-500 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-200"></div>
+
+                                                        {/* The Button */}
+                                                        <div className="relative bg-black rounded-full p-1 border border-white/10">
+                                                            <GoogleLogin
+                                                                onSuccess={handleGoogleSuccess}
+                                                                theme="filled_black"
+                                                                shape="pill"
+                                                                size="large"
+                                                                width="250"
+                                                            />
+                                                        </div>
+
+                                                        {/* THE ARROW ITSELF (Positioned relative to button) */}
+                                                        <GraffitiArrow />
+                                                    </div>
+                                                </div>
+                                            )}</motion.div>
                                     )}
                                 </AnimatePresence>
                             </motion.div>
@@ -592,7 +746,7 @@ export default function App() {
                             <h2 className="text-[12vw] font-black leading-none text-neutral-800 select-none">PULSE.IO</h2>
                             <div className="flex justify-between items-end mt-8 text-neutral-500 font-mono text-sm">
                                 <div>© 2026 KARTIK BHARGAVA ENGINEERING.</div>
-                                <div className="flex gap-4"><a href="#" className="hover:text-white">GITHUB</a><a href="#" className="hover:text-white">LINKEDIN</a></div>
+                                <div className="flex gap-4"><a href="https://github.com/Consoder" className="hover:text-white">GITHUB</a><a href="www.linkedin.com/in/kartik-bhargava-248796257" className="hover:text-white">LINKEDIN</a></div>
                             </div>
                         </footer>
                     </>
@@ -638,7 +792,7 @@ export default function App() {
                                         <div className="lg:col-span-2 bg-white/5 border border-white/10 p-6 rounded-2xl relative">
                                             <div className="absolute top-6 right-6 font-mono text-xs text-gray-500">TRAFFIC_OVER_TIME</div>
                                             <ResponsiveContainer width="100%" height="100%">
-                                                {/* 👇 THE FIX: Only render chart if we actually have data points 👇 */}
+                                                {/* V12 FIX: Only render chart if we actually have data points */}
                                                 {selectedLinkStats.timeline && selectedLinkStats.timeline.length > 0 ? (
                                                     <AreaChart data={selectedLinkStats.timeline}>
                                                         <defs>
@@ -661,7 +815,7 @@ export default function App() {
                                                         />
                                                     </AreaChart>
                                                 ) : (
-                                                    // 👇 Fallback UI when there is no data yet
+                                                    // Fallback UI when there is no data yet
                                                     <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-50">
                                                         <BarChart3 size={48} className="mb-2" />
                                                         <span className="font-mono text-xs tracking-widest">AWAITING_TRAFFIC_DATA</span>
