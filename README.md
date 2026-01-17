@@ -25,9 +25,6 @@
 
 <br />
 
-<div align="center">
-  <img src="https://via.placeholder.com/1200x600/050505/06b6d4?text=PULSE.IO+MISSION+CONTROL" alt="Pulse Dashboard" width="100%" style="border-radius: 10px; border: 1px solid #333;" />
-</div>
 
 <br />
 
