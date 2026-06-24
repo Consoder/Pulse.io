@@ -629,7 +629,7 @@ export default function App() {
             const payload = { url, userId: user?.sub || 'anonymous', password: password || null, expiresAt: expiry || null, customAlias: alias || null };
             const res = await axios.post(`${API_BASE}/api/shorten`, payload);
             const shortCode = res.data.shortCode;
-            navigator.clipboard.writeText(`https://pulse.io/${shortCode}`);
+            navigator.clipboard.writeText(`${window.location.origin}/r/${shortCode}`);
             setCreatedLink(shortCode);
             toast.success("Deployed", { description: "Link copied to clipboard." });
             if (user) fetchUserLinks(user.sub);
@@ -648,7 +648,7 @@ export default function App() {
 
     const verifyGate = async () => {
         try {
-            const res = await axios.get(`${API_BASE}/${gateCode}`, { params: { password: gatePass }, headers: { 'Accept': 'application/json' } });
+            const res = await axios.get(`${API_BASE}/r/${gateCode}`, { params: { password: gatePass }, headers: { 'Accept': 'application/json' } });
             window.location.href = res.data.url;
             setView('home'); setGatePass('');
         } catch (err) { toast.error("Access Denied"); }
@@ -723,11 +723,11 @@ export default function App() {
                                             <div className="border border-white/20 bg-black/50 p-6 rounded-xl backdrop-blur-md flex flex-col gap-4">
                                                 <div className="flex items-center gap-6">
                                                     <span className="font-mono text-2xl text-primary underline">pulse.io/{createdLink}</span>
-                                                    <button onClick={()=>{navigator.clipboard.writeText(`pulse.io/${createdLink}`); toast.success("Branded Link Copied")}}><Copy size={20}/></button>
+                                                    <button onClick={()=>{navigator.clipboard.writeText(`${window.location.origin}/r/${createdLink}`); toast.success("Link Copied")}}><Copy size={20}/></button>
                                                 </div>
                                                 <div className="flex items-center gap-4 bg-white/5 p-3 rounded-lg mt-2">
-                                                    <span className="font-mono text-xs text-gray-500 break-all">Test Link: {API_BASE}/{createdLink}</span>
-                                                    <button onClick={()=>{navigator.clipboard.writeText(`${API_BASE}/${createdLink}`); toast.success("Live Test Link Copied")}} className="text-gray-400 hover:text-white shrink-0"><Copy size={16}/></button>
+                                                    <span className="font-mono text-xs text-gray-500 break-all">Test Link: {API_BASE}/r/{createdLink}</span>
+                                                    <button onClick={()=>{navigator.clipboard.writeText(`${API_BASE}/r/${createdLink}`); toast.success("Live Test Link Copied")}} className="text-gray-400 hover:text-white shrink-0"><Copy size={16}/></button>
                                                 </div>
                                             </div>
                                             {/* --- 🎨 GRAFFITI ARROW IMPLEMENTATION --- */}
@@ -782,7 +782,7 @@ export default function App() {
                                 <SpotlightCard key={link._id} className="h-64 p-6 flex flex-col justify-between">
                                     <div className="flex justify-between items-start">
                                         <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center border border-white/10"><Activity size={18} /></div>
-                                        <div className="flex gap-2">{link.password && <Lock size={14} className="text-amber-500"/>}<button onClick={() => { navigator.clipboard.writeText(`${API_BASE}/${link.shortCode}`); toast.success("Copied") }} className="hover:text-white text-gray-500 transition-colors"><Copy size={16}/></button></div>
+                                        <div className="flex gap-2">{link.password && <Lock size={14} className="text-amber-500"/>}<button onClick={() => { navigator.clipboard.writeText(`${API_BASE}/r/${link.shortCode}`); toast.success("Copied") }} className="hover:text-white text-gray-500 transition-colors"><Copy size={16}/></button></div>
                                     </div>
                                     <div><a href={link.originalUrl} target="_blank" className="text-2xl font-mono font-bold hover:text-primary transition-colors block mb-1">/{link.shortCode}</a><p className="text-xs text-gray-600 truncate font-mono">{link.originalUrl}</p></div>
                                     <div className="flex items-center justify-between pt-4 border-t border-white/5">

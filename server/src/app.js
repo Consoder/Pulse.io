@@ -56,6 +56,7 @@ app.get('/api/analytics/:code', getLinkAnalytics);
 app.get('/analytics/:code', getLinkAnalytics);
 
 // 4. The Redirect / Password Gate
+app.get('/r/:code', redirectUrl);
 app.get('/:code', redirectUrl);
 
 // Only listen locally, Vercel provides its own port/server
