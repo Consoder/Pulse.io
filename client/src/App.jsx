@@ -302,12 +302,10 @@ const Navbar = ({ user, setView, view, onSuccess }) => {
                     PULSE<span className="text-primary">.IO</span>
                 </div>
                 <div className="hidden md:flex items-center gap-8 font-mono text-sm">
+                    <button onClick={() => setView('home')} className={cn("hover:text-primary transition-colors", view === 'home' && "text-primary underline decoration-wavy")}>/CREATE</button>
+                    <button onClick={() => setView('dashboard')} className={cn("hover:text-primary transition-colors", view === 'dashboard' && "text-primary underline decoration-wavy")}>/DASHBOARD</button>
                     {user ? (
-                        <>
-                            <button onClick={() => setView('home')} className={cn("hover:text-primary transition-colors", view === 'home' && "text-primary underline decoration-wavy")}>/CREATE</button>
-                            <button onClick={() => setView('dashboard')} className={cn("hover:text-primary transition-colors", view === 'dashboard' && "text-primary underline decoration-wavy")}>/DASHBOARD</button>
-                            <img src={user.picture} className="w-8 h-8 rounded-full border border-white/20" alt="profile"/>
-                        </>
+                        <img src={user.picture} className="w-8 h-8 rounded-full border border-white/20" alt="profile"/>
                     ) : (
                         <div className="opacity-90 hover:opacity-100 transition-opacity">
                             <GoogleLogin onSuccess={onSuccess} theme="filled_black" shape="pill" size="medium" text="signin" />
@@ -321,12 +319,9 @@ const Navbar = ({ user, setView, view, onSuccess }) => {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-16 left-0 right-0 bg-black border-b border-white/20 p-6 flex flex-col gap-4 font-mono md:hidden shadow-2xl z-50">
-                        {user ? (
-                            <>
-                                <button onClick={() => { setView('home'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">CREATE LINK</button>
-                                <button onClick={() => { setView('dashboard'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">DASHBOARD</button>
-                            </>
-                        ) : (
+                        <button onClick={() => { setView('home'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">CREATE LINK</button>
+                        <button onClick={() => { setView('dashboard'); setIsOpen(false)}} className="text-left py-2 border-b border-white/10">DASHBOARD</button>
+                        {!user && (
                             <div className="pt-2 flex justify-center w-full">
                                 <GoogleLogin
                                     onSuccess={onSuccess}
@@ -554,6 +549,7 @@ export default function App() {
     const [gateCode, setGateCode] = useState('');
     const [gatePass, setGatePass] = useState('');
     const [showGraffiti, setShowGraffiti] = useState(false); // GRAFFITI STATE
+    const [guestLinks, setGuestLinks] = useState([]); // GUEST MODE STATE
 
     const IS_PRODUCTION = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.includes('trycloudflare.com');
     // Using Serverless backend on Vercel, so the API is on the exact same domain!
@@ -632,7 +628,17 @@ export default function App() {
             navigator.clipboard.writeText(`${window.location.origin}/r/${shortCode}`);
             setCreatedLink(shortCode);
             toast.success("Deployed", { description: "Link copied to clipboard." });
-            if (user) fetchUserLinks(user.sub);
+            if (user) {
+                fetchUserLinks(user.sub);
+            } else {
+                setGuestLinks(prev => [{
+                    _id: shortCode,
+                    shortCode: shortCode,
+                    originalUrl: url,
+                    clicks: 0,
+                    password: password ? true : false
+                }, ...prev]);
+            }
             setUrl(''); setPassword(''); setExpiry(''); setAlias('');
         } catch (err) { 
             let errMsg = "Deployment Failed";
@@ -771,27 +777,53 @@ export default function App() {
                         </footer>
                     </>
                 )}
-                {view === 'dashboard' && user && (
+                {view === 'dashboard' && (
                     <div className="pt-32 px-6 pb-20 max-w-7xl mx-auto min-h-screen">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-between items-end mb-12 border-b border-white/10 pb-6">
-                            <div><h1 className="text-5xl font-bold tracking-tighter">Command Center</h1><p className="text-gray-500 font-mono mt-2">USER: {user.name.toUpperCase()}</p></div>
-                            <div className="text-right"><div className="text-4xl font-mono text-primary">{userLinks.length}</div><div className="text-xs text-gray-500">ACTIVE LINKS</div></div>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-between items-end mb-8 border-b border-white/10 pb-6">
+                            <div><h1 className="text-5xl font-bold tracking-tighter">Command Center</h1><p className="text-gray-500 font-mono mt-2">{user ? `USER: ${user.name.toUpperCase()}` : 'USER: GUEST'}</p></div>
+                            <div className="text-right"><div className="text-4xl font-mono text-primary">{user ? userLinks.length : guestLinks.length}</div><div className="text-xs text-gray-500">ACTIVE LINKS</div></div>
                         </motion.div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {userLinks.map((link, i) => (
-                                <SpotlightCard key={link._id} className="h-64 p-6 flex flex-col justify-between">
-                                    <div className="flex justify-between items-start">
-                                        <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center border border-white/10"><Activity size={18} /></div>
-                                        <div className="flex gap-2">{link.password && <Lock size={14} className="text-amber-500"/>}<button onClick={() => { navigator.clipboard.writeText(`${API_BASE}/r/${link.shortCode}`); toast.success("Copied") }} className="hover:text-white text-gray-500 transition-colors"><Copy size={16}/></button></div>
+                        
+                        {!user && (
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-amber-500/10 border border-amber-500/30 text-amber-500 p-4 md:p-6 rounded-2xl mb-8 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_0_30px_rgba(245,158,11,0.05)]">
+                                <div className="flex items-center gap-4 text-center md:text-left">
+                                    <div className="hidden md:flex p-3 bg-amber-500/20 rounded-full">
+                                        <AlertTriangle size={24} className="text-amber-400" />
                                     </div>
-                                    <div><a href={link.originalUrl} target="_blank" className="text-2xl font-mono font-bold hover:text-primary transition-colors block mb-1">/{link.shortCode}</a><p className="text-xs text-gray-600 truncate font-mono">{link.originalUrl}</p></div>
-                                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                        <div className="flex items-baseline gap-1"><span className="text-xl font-bold">{link.clicks}</span><span className="text-[10px] text-gray-500">HITS</span></div>
-                                        <button onClick={() => fetchAnalytics(link.shortCode)} className="bg-white text-black px-4 py-1 rounded-full text-xs font-bold hover:bg-gray-200 transition-colors">ANALYZE</button>
+                                    <div>
+                                        <h3 className="font-bold font-mono tracking-wider">GUEST MODE ACTIVE</h3>
+                                        <p className="text-sm opacity-80 mt-1">Sign in to permanently save your links and analytics. Unsaved data will be lost upon reload.</p>
                                     </div>
-                                </SpotlightCard>
-                            ))}
-                        </div>
+                                </div>
+                                <div className="shrink-0 bg-black rounded-full p-1 border border-white/10">
+                                    <GoogleLogin onSuccess={handleGoogleSuccess} theme="filled_black" shape="pill" size="medium" text="signin" />
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {((user ? userLinks : guestLinks).length === 0) ? (
+                            <div className="text-center py-20 border border-white/5 rounded-2xl bg-white/5">
+                                <Activity size={48} className="mx-auto text-gray-600 mb-4" />
+                                <h3 className="text-xl font-bold text-gray-400 mb-2">No active links found</h3>
+                                <button onClick={() => setView('home')} className="text-primary hover:underline">Deploy your first link</button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {(user ? userLinks : guestLinks).map((link, i) => (
+                                    <SpotlightCard key={link._id} className="h-64 p-6 flex flex-col justify-between">
+                                        <div className="flex justify-between items-start">
+                                            <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center border border-white/10"><Activity size={18} /></div>
+                                            <div className="flex gap-2">{link.password && <Lock size={14} className="text-amber-500"/>}<button onClick={() => { navigator.clipboard.writeText(`${API_BASE}/r/${link.shortCode}`); toast.success("Copied") }} className="hover:text-white text-gray-500 transition-colors"><Copy size={16}/></button></div>
+                                        </div>
+                                        <div><a href={link.originalUrl} target="_blank" className="text-2xl font-mono font-bold hover:text-primary transition-colors block mb-1">/{link.shortCode}</a><p className="text-xs text-gray-600 truncate font-mono">{link.originalUrl}</p></div>
+                                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                            <div className="flex items-baseline gap-1"><span className="text-xl font-bold">{link.clicks}</span><span className="text-[10px] text-gray-500">HITS</span></div>
+                                            <button onClick={() => fetchAnalytics(link.shortCode)} className="bg-white text-black px-4 py-1 rounded-full text-xs font-bold hover:bg-gray-200 transition-colors">ANALYZE</button>
+                                        </div>
+                                    </SpotlightCard>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
                 <AnimatePresence>
