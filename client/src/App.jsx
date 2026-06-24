@@ -925,88 +925,97 @@ export default function App() {
                                                 </div>
                                             </div>
                                             {/* Chart Body */}
-                                            <div className="flex-1 px-2 pb-4 min-h-0">
+                                            <div className="flex-1 px-2 pb-4 min-h-0 relative">
+                                                {(!selectedLinkStats.timeline || selectedLinkStats.timeline.length === 0) && (
+                                                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-gray-500 bg-[#09090b]/50 backdrop-blur-[2px] rounded-xl">
+                                                        <BarChart3 size={32} className="mb-2 opacity-50" />
+                                                        <span className="font-mono text-[10px] tracking-widest opacity-80">AWAITING_TRAFFIC_DATA</span>
+                                                    </div>
+                                                )}
                                                 <ResponsiveContainer width="100%" height="100%">
-                                                    {selectedLinkStats.timeline && selectedLinkStats.timeline.length > 1 ? (
-                                                        <AreaChart data={selectedLinkStats.timeline} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                                                            <defs>
-                                                                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                                    <stop offset="5%" stopColor="#ec4899" stopOpacity={0.4}/>
-                                                                    <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
-                                                                </linearGradient>
-                                                            </defs>
-                                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                                            <XAxis dataKey="name" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} dy={8} />
-                                                            <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
-                                                            <Tooltip 
-                                                                content={({ active, payload }) => {
-                                                                    if (active && payload && payload.length) {
-                                                                        return (
-                                                                            <div className="bg-[#09090b]/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl">
-                                                                                <p className="text-gray-400 font-mono text-xs mb-1">{payload[0].payload.name}</p>
-                                                                                <p className="text-2xl font-black text-pink-500">{payload[0].value} <span className="text-xs text-gray-500 font-normal">HITS</span></p>
-                                                                            </div>
-                                                                        );
-                                                                    }
-                                                                    return null;
-                                                                }}
-                                                            />
-                                                            <Area 
-                                                                type="monotone" 
-                                                                dataKey="value" 
-                                                                stroke="#ec4899" 
-                                                                strokeWidth={2.5} 
-                                                                fillOpacity={1} 
-                                                                fill="url(#colorValue)" 
-                                                                activeDot={{ r: 5, fill: "#fff", stroke: "#ec4899", strokeWidth: 2, className: "drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" }} 
-                                                            />
-                                                        </AreaChart>
-                                                    ) : selectedLinkStats.timeline && selectedLinkStats.timeline.length === 1 ? (
-                                                        <div className="flex flex-col items-center justify-center h-full gap-4">
-                                                            <div className="relative">
-                                                                <div className="absolute inset-0 bg-pink-500/20 blur-2xl rounded-full scale-150" />
-                                                                <div className="relative bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/30 backdrop-blur-sm rounded-2xl p-8 text-center">
-                                                                    <p className="text-5xl font-black text-pink-500 mb-1">1</p>
-                                                                    <p className="text-xs font-mono text-gray-400 tracking-widest uppercase">Click recorded</p>
-                                                                    <p className="text-[10px] font-mono text-gray-600 mt-2">{selectedLinkStats.timeline[0].name}</p>
-                                                                </div>
-                                                            </div>
-                                                            <p className="font-mono text-[10px] text-gray-600 tracking-wider">MORE CLICKS WILL GENERATE A CHART</p>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-50">
-                                                            <BarChart3 size={48} className="mb-3" />
-                                                            <span className="font-mono text-xs tracking-widest">AWAITING_TRAFFIC_DATA</span>
-                                                            <span className="font-mono text-[10px] text-gray-600 mt-1">Share your link to see analytics</span>
-                                                        </div>
-                                                    )}
+                                                    {(() => {
+                                                        const hasData = selectedLinkStats.timeline && selectedLinkStats.timeline.length > 0;
+                                                        let chartData = [];
+                                                        if (hasData) {
+                                                            chartData = selectedLinkStats.timeline.length === 1 
+                                                                ? [{ name: 'Start', value: 0 }, selectedLinkStats.timeline[0], { name: 'Now', value: selectedLinkStats.timeline[0].value }]
+                                                                : selectedLinkStats.timeline;
+                                                        } else {
+                                                            chartData = [
+                                                                { name: 'Mon', value: 0 }, { name: 'Tue', value: 0 }, { name: 'Wed', value: 0 },
+                                                                { name: 'Thu', value: 0 }, { name: 'Fri', value: 0 }, { name: 'Sat', value: 0 }, { name: 'Sun', value: 0 }
+                                                            ];
+                                                        }
+                                                        
+                                                        return (
+                                                            <AreaChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                                                                <defs>
+                                                                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                                                        <stop offset="5%" stopColor="#ec4899" stopOpacity={0.4}/>
+                                                                        <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+                                                                    </linearGradient>
+                                                                </defs>
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                                                <XAxis dataKey="name" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} dy={8} />
+                                                                <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                                                                <Tooltip 
+                                                                    content={({ active, payload }) => {
+                                                                        if (active && payload && payload.length && hasData) {
+                                                                            return (
+                                                                                <div className="bg-[#09090b]/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl">
+                                                                                    <p className="text-gray-400 font-mono text-xs mb-1">{payload[0].payload.name}</p>
+                                                                                    <p className="text-2xl font-black text-pink-500">{payload[0].value} <span className="text-xs text-gray-500 font-normal">HITS</span></p>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    }}
+                                                                />
+                                                                <Area 
+                                                                    type="monotone" 
+                                                                    dataKey="value" 
+                                                                    stroke={hasData ? "#ec4899" : "#52525b"} 
+                                                                    strokeWidth={2.5} 
+                                                                    fillOpacity={1} 
+                                                                    fill={hasData ? "url(#colorValue)" : "transparent"} 
+                                                                    activeDot={hasData ? { r: 5, fill: "#fff", stroke: "#ec4899", strokeWidth: 2, className: "drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" } : false} 
+                                                                />
+                                                            </AreaChart>
+                                                        );
+                                                    })()}
                                                 </ResponsiveContainer>
                                             </div>
                                         </div>
                                         <div className="bg-white/5 border border-white/5 hover:border-white/10 p-6 rounded-2xl relative transition-all duration-300">
                                             <div className="absolute top-6 left-6 font-mono text-xs text-gray-500 z-10">DEVICE_DISTRIBUTION</div>
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                {selectedLinkStats.os && selectedLinkStats.os.length > 0 ? (
+                                            {(!selectedLinkStats.os || selectedLinkStats.os.length === 0) && (
+                                                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-gray-500 bg-[#09090b]/50 backdrop-blur-[2px] rounded-xl">
+                                                    <Smartphone size={32} className="mb-2 opacity-50" />
+                                                    <span className="font-mono text-[10px] tracking-widest opacity-80">NO_DEVICE_DATA</span>
+                                                </div>
+                                            )}
+                                            <div className="pt-8 h-full">
+                                                <ResponsiveContainer width="100%" height="100%">
                                                     <RePieChart>
                                                         <Pie 
-                                                            data={selectedLinkStats.os} 
+                                                            data={selectedLinkStats.os && selectedLinkStats.os.length > 0 ? selectedLinkStats.os : [{name: 'Empty', value: 1}]} 
                                                             innerRadius={70} 
                                                             outerRadius={100} 
                                                             paddingAngle={5} 
                                                             dataKey="value"
                                                             stroke="none"
                                                         >
-                                                            {selectedLinkStats.os.map((entry, index) => ( 
+                                                            {(selectedLinkStats.os && selectedLinkStats.os.length > 0 ? selectedLinkStats.os : [{name: 'Empty', value: 1}]).map((entry, index) => ( 
                                                                 <Cell 
                                                                     key={`cell-${index}`} 
-                                                                    fill={['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'][index % 5]} 
+                                                                    fill={selectedLinkStats.os && selectedLinkStats.os.length > 0 ? ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'][index % 5] : '#52525b'} 
                                                                     className="hover:opacity-80 transition-opacity outline-none"
                                                                 /> 
                                                             ))}
                                                         </Pie>
                                                         <Tooltip 
                                                             content={({ active, payload }) => {
-                                                                if (active && payload && payload.length) {
+                                                                if (active && payload && payload.length && selectedLinkStats.os && selectedLinkStats.os.length > 0) {
                                                                     return (
                                                                         <div className="bg-[#09090b]/90 backdrop-blur-md border border-white/10 p-3 rounded-lg shadow-xl flex items-center gap-3">
                                                                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: payload[0].payload.fill }} />
@@ -1018,19 +1027,16 @@ export default function App() {
                                                                 return null;
                                                             }}
                                                         />
-                                                        <Legend 
-                                                            verticalAlign="bottom" 
-                                                            iconType="circle"
-                                                            formatter={(value, entry) => <span className="text-gray-400 font-mono text-xs ml-1">{value}</span>}
-                                                        />
+                                                        {selectedLinkStats.os && selectedLinkStats.os.length > 0 && (
+                                                            <Legend 
+                                                                verticalAlign="bottom" 
+                                                                iconType="circle"
+                                                                formatter={(value, entry) => <span className="text-gray-400 font-mono text-xs ml-1">{value}</span>}
+                                                            />
+                                                        )}
                                                     </RePieChart>
-                                                ) : (
-                                                    <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-50">
-                                                        <Smartphone size={48} className="mb-2" />
-                                                        <span className="font-mono text-xs tracking-widest">NO_DEVICE_DATA</span>
-                                                    </div>
-                                                )}
-                                            </ResponsiveContainer>
+                                                </ResponsiveContainer>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
