@@ -13,6 +13,27 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// --- DATABASE CONNECTION ---
+let isConnected;
+const connectDB = async () => {
+    if (isConnected) return;
+    try {
+        const db = await mongoose.connect(process.env.MONGO_URI);
+        isConnected = db.connections[0].readyState;
+        console.log('✅ MongoDB Connected');
+    } catch (err) {
+        console.error("❌ DB Error:", err);
+    }
+};
+
+// Vercel Serverless environment: we need to ensure DB is connected per-request
+app.use(async (req, res, next) => {
+    if (process.env.NODE_ENV !== 'test') {
+        await connectDB();
+    }
+    next();
+});
+
 // --- MIDDLEWARE ---
 app.use(cors({
     origin: true,
@@ -34,14 +55,11 @@ app.get('/api/analytics/:code', getLinkAnalytics);
 // 4. The Redirect / Password Gate
 app.get('/:code', redirectUrl);
 
-// --- DATABASE CONNECTION (Skip if Testing) ---
-if (process.env.NODE_ENV !== 'test') {
-    mongoose.connect(process.env.MONGO_URI)
-        .then(() => {
-            console.log('✅ MongoDB Connected');
-            app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-        })
-        .catch(err => console.error("❌ DB Error:", err));
+// Only listen locally, Vercel provides its own port/server
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+    connectDB().then(() => {
+        app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    });
 }
 
 export default app;

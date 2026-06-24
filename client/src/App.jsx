@@ -556,8 +556,8 @@ export default function App() {
     const [showGraffiti, setShowGraffiti] = useState(false); // GRAFFITI STATE
 
     const IS_PRODUCTION = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.includes('trycloudflare.com');
-    // FORCING CLOUDFLARE TUNNEL EVERYWHERE BECAUSE RENDER BACKEND IS DEAD (404)
-    const API_BASE = "https://assumptions-theater-alexandria-gazette.trycloudflare.com";
+    // Using Serverless backend on Vercel, so the API is on the exact same domain!
+    const API_BASE = IS_PRODUCTION ? window.location.origin : "https://assumptions-theater-alexandria-gazette.trycloudflare.com";
 
     const handleGoogleSuccess = (credentialResponse) => {
         const decoded = jwtDecode(credentialResponse.credential);
