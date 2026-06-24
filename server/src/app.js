@@ -45,12 +45,15 @@ app.use(express.json());
 // --- ROUTES ---
 // 1. Create Link (Expects { url, customAlias, ... })
 app.post('/api/shorten', shortenUrl);
+app.post('/shorten', shortenUrl);
 
 // 2. Dashboard Stats (Get all links for a user)
 app.get('/api/stats/:userId', getUserStats);
+app.get('/stats/:userId', getUserStats);
 
 // 3. Analytics Data (Returns Arrays for Recharts)
 app.get('/api/analytics/:code', getLinkAnalytics);
+app.get('/analytics/:code', getLinkAnalytics);
 
 // 4. The Redirect / Password Gate
 app.get('/:code', redirectUrl);
