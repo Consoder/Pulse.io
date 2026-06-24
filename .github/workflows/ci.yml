@@ -1,0 +1,44 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    # We need a Redis service for the tests since BullMQ is used
+    services:
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+        cache-dependency-path: './server/package-lock.json'
+        
+    - name: Install Dependencies
+      working-directory: ./server
+      run: npm ci || npm install
+      
+    - name: Run Integration Tests
+      working-directory: ./server
+      run: npm run test
+      env:
+        REDIS_URI: redis://localhost:6379
+        PORT: 5000

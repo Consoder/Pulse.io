@@ -1,0 +1,43 @@
+{
+  "name": "pulse-server",
+  "version": "1.0.0",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --setupFilesAfterEnv=./tests/setup.js --detectOpenHandles --forceExit"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "bullmq": "^5.79.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.22.2",
+    "express-async-errors": "^3.1.1",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.5.1",
+    "geoip-lite": "^2.0.3",
+    "google-auth-library": "^10.7.0",
+    "helmet": "^7.1.0",
+    "ioredis": "^5.3.2",
+    "isbot": "^5.1.44",
+    "jsonwebtoken": "^9.0.3",
+    "localtunnel": "^2.0.2",
+    "mongoose": "^8.24.1",
+    "morgan": "^1.11.0",
+    "nanoid": "^5.0.4",
+    "socket.io": "^4.8.3",
+    "ua-parser-js": "^2.0.10",
+    "winston": "^3.11.0",
+    "xss-clean": "^0.1.4",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "jest": "^30.4.2",
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^7.2.2"
+  }
+}

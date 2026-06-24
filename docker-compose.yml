@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  pulse-server:
+    build: ./server
+    container_name: pulse-server
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - MONGO_URI=mongodb://pulse-mongo:27017/pulse
+      - REDIS_URI=redis://pulse-redis:6379
+      - CLIENT_URL=http://localhost:5173
+    depends_on:
+      - pulse-mongo
+      - pulse-redis
+    restart: unless-stopped
+
+  pulse-mongo:
+    image: mongo:latest
+    container_name: pulse-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+  pulse-redis:
+    image: redis:alpine
+    container_name: pulse-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
