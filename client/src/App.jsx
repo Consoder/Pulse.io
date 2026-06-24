@@ -556,7 +556,8 @@ export default function App() {
     const [showGraffiti, setShowGraffiti] = useState(false); // GRAFFITI STATE
 
     const IS_PRODUCTION = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.includes('trycloudflare.com');
-    const API_BASE = IS_PRODUCTION ? "https://pulse-backend-api.onrender.com" : "https://assumptions-theater-alexandria-gazette.trycloudflare.com";
+    // FORCING CLOUDFLARE TUNNEL EVERYWHERE BECAUSE RENDER BACKEND IS DEAD (404)
+    const API_BASE = "https://assumptions-theater-alexandria-gazette.trycloudflare.com";
 
     const handleGoogleSuccess = (credentialResponse) => {
         const decoded = jwtDecode(credentialResponse.credential);
