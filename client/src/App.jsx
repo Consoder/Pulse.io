@@ -634,7 +634,15 @@ export default function App() {
             toast.success("Deployed", { description: "Link copied to clipboard." });
             if (user) fetchUserLinks(user.sub);
             setUrl(''); setPassword(''); setExpiry(''); setAlias('');
-        } catch (err) { toast.error(err.response?.data?.error || err.message || "Deployment Failed"); }
+        } catch (err) { 
+            let errMsg = "Deployment Failed";
+            if (err.response?.data?.error) {
+                errMsg = typeof err.response.data.error === 'string' ? err.response.data.error : err.response.data.error.message || JSON.stringify(err.response.data.error);
+            } else if (err.message) {
+                errMsg = err.message;
+            }
+            toast.error(errMsg); 
+        }
         finally { setLoading(false); }
     };
 
