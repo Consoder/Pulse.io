@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import {
     AreaChart, Area, PieChart as RePieChart,
-    Pie, Cell, ResponsiveContainer, Tooltip, XAxis, Legend
+    Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend
 } from 'recharts';
 import MapChart from './MapChart';
 
@@ -830,49 +830,78 @@ export default function App() {
 
                                     {/* TIME SERIES & DONUT ROW */}
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-                                        <div className="lg:col-span-2 bg-white/5 border border-white/10 p-6 rounded-2xl relative">
-                                            <div className="absolute top-6 right-6 font-mono text-xs text-gray-500">TRAFFIC_OVER_TIME</div>
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                {/* V12 FIX: Only render chart if we actually have data points */}
-                                                {selectedLinkStats.timeline && selectedLinkStats.timeline.length > 0 ? (
-                                                    <AreaChart data={selectedLinkStats.timeline} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                                                        <defs>
-                                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                                <stop offset="5%" stopColor="#ec4899" stopOpacity={0.8}/>
-                                                                <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
-                                                            </linearGradient>
-                                                        </defs>
-                                                        <XAxis dataKey="name" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                                                        <Tooltip 
-                                                            content={({ active, payload }) => {
-                                                                if (active && payload && payload.length) {
-                                                                    return (
-                                                                        <div className="bg-[#09090b]/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl">
-                                                                            <p className="text-gray-400 font-mono text-xs mb-1">{payload[0].payload.name}</p>
-                                                                            <p className="text-2xl font-black text-pink-500">{payload[0].value} <span className="text-xs text-gray-500 font-normal">HITS</span></p>
-                                                                        </div>
-                                                                    );
-                                                                }
-                                                                return null;
-                                                            }}
-                                                        />
-                                                        <Area 
-                                                            type="monotone" 
-                                                            dataKey="value" 
-                                                            stroke="#ec4899" 
-                                                            strokeWidth={3} 
-                                                            fillOpacity={1} 
-                                                            fill="url(#colorValue)" 
-                                                            activeDot={{ r: 6, fill: "#fff", stroke: "#ec4899", strokeWidth: 2, className: "drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" }} 
-                                                        />
-                                                    </AreaChart>
-                                                ) : (
-                                                    <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-50">
-                                                        <BarChart3 size={48} className="mb-2" />
-                                                        <span className="font-mono text-xs tracking-widest">AWAITING_TRAFFIC_DATA</span>
-                                                    </div>
-                                                )}
-                                            </ResponsiveContainer>
+                                        <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden flex flex-col">
+                                            {/* Chart Header */}
+                                            <div className="flex items-center justify-between px-6 pt-5 pb-2">
+                                                <div>
+                                                    <h3 className="text-white font-bold text-sm tracking-wide">Traffic Over Time</h3>
+                                                    <p className="text-gray-500 font-mono text-xs mt-0.5">Click activity timeline</p>
+                                                </div>
+                                                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
+                                                    <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
+                                                    <span className="font-mono text-xs text-gray-400">
+                                                        {selectedLinkStats.totalClicks || 0} total
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {/* Chart Body */}
+                                            <div className="flex-1 px-2 pb-4 min-h-0">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    {selectedLinkStats.timeline && selectedLinkStats.timeline.length > 1 ? (
+                                                        <AreaChart data={selectedLinkStats.timeline} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                                                            <defs>
+                                                                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="5%" stopColor="#ec4899" stopOpacity={0.4}/>
+                                                                    <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                                            <XAxis dataKey="name" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} dy={8} />
+                                                            <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                                                            <Tooltip 
+                                                                content={({ active, payload }) => {
+                                                                    if (active && payload && payload.length) {
+                                                                        return (
+                                                                            <div className="bg-[#09090b]/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl">
+                                                                                <p className="text-gray-400 font-mono text-xs mb-1">{payload[0].payload.name}</p>
+                                                                                <p className="text-2xl font-black text-pink-500">{payload[0].value} <span className="text-xs text-gray-500 font-normal">HITS</span></p>
+                                                                            </div>
+                                                                        );
+                                                                    }
+                                                                    return null;
+                                                                }}
+                                                            />
+                                                            <Area 
+                                                                type="monotone" 
+                                                                dataKey="value" 
+                                                                stroke="#ec4899" 
+                                                                strokeWidth={2.5} 
+                                                                fillOpacity={1} 
+                                                                fill="url(#colorValue)" 
+                                                                activeDot={{ r: 5, fill: "#fff", stroke: "#ec4899", strokeWidth: 2, className: "drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" }} 
+                                                            />
+                                                        </AreaChart>
+                                                    ) : selectedLinkStats.timeline && selectedLinkStats.timeline.length === 1 ? (
+                                                        <div className="flex flex-col items-center justify-center h-full gap-4">
+                                                            <div className="relative">
+                                                                <div className="absolute inset-0 bg-pink-500/20 blur-2xl rounded-full scale-150" />
+                                                                <div className="relative bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/30 backdrop-blur-sm rounded-2xl p-8 text-center">
+                                                                    <p className="text-5xl font-black text-pink-500 mb-1">1</p>
+                                                                    <p className="text-xs font-mono text-gray-400 tracking-widest uppercase">Click recorded</p>
+                                                                    <p className="text-[10px] font-mono text-gray-600 mt-2">{selectedLinkStats.timeline[0].name}</p>
+                                                                </div>
+                                                            </div>
+                                                            <p className="font-mono text-[10px] text-gray-600 tracking-wider">MORE CLICKS WILL GENERATE A CHART</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-50">
+                                                            <BarChart3 size={48} className="mb-3" />
+                                                            <span className="font-mono text-xs tracking-widest">AWAITING_TRAFFIC_DATA</span>
+                                                            <span className="font-mono text-[10px] text-gray-600 mt-1">Share your link to see analytics</span>
+                                                        </div>
+                                                    )}
+                                                </ResponsiveContainer>
+                                            </div>
                                         </div>
                                         <div className="bg-white/5 border border-white/10 p-6 rounded-2xl relative">
                                             <div className="absolute top-6 left-6 font-mono text-xs text-gray-500 z-10">DEVICE_DISTRIBUTION</div>
