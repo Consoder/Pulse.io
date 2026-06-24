@@ -15,10 +15,9 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/assets/(.*)", "destination": "/client/dist/assets/$1" },
-    { "source": "/vite.svg", "destination": "/client/dist/vite.svg" },
-    { "source": "/logo.png", "destination": "/client/dist/logo.png" },
-    { "source": "/", "destination": "/client/dist/index.html" },
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/vite.svg", "destination": "/vite.svg" },
+    { "source": "/", "destination": "/index.html" },
     { "source": "/(.*)", "destination": "/api/index.js" }
   ]
 }
