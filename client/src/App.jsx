@@ -725,6 +725,10 @@ export default function App() {
                                                     <span className="font-mono text-2xl text-primary underline">pulse.io/{createdLink}</span>
                                                     <button onClick={()=>{navigator.clipboard.writeText(`${window.location.origin}/r/${createdLink}`); toast.success("Link Copied")}}><Copy size={20}/></button>
                                                 </div>
+                                                <div className="flex items-center gap-4 bg-white/5 p-3 rounded-lg mt-2">
+                                                    <span className="font-mono text-xs text-gray-500 break-all">Test Link: {API_BASE}/r/{createdLink}</span>
+                                                    <button onClick={()=>{navigator.clipboard.writeText(`${API_BASE}/r/${createdLink}`); toast.success("Live Test Link Copied")}} className="text-gray-400 hover:text-white shrink-0"><Copy size={16}/></button>
+                                                </div>
                                             </div>
                                             {/* --- 🎨 GRAFFITI ARROW IMPLEMENTATION --- */}
                                             {!user && (
