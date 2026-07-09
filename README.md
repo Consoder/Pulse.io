@@ -86,7 +86,7 @@ We didn't just build a dashboard; we engineered a platform that can scale.
 
 ## ✨ Key Features & UI
 
-### 1. "God-Mode" Marketing Dashboard
+### 1.  Marketing Dashboard
 A visually stunning, glassmorphism-inspired Bento grid layout that visualizes complex MongoDB aggregation pipelines in real-time.
 * **Geospatial Heatmaps** & **Timeline Area Charts** powered by `Recharts`.
 * **Frictionless Guest Mode:** Users can shorten links and view live analytics instantly without an account, acting as a high-conversion acquisition funnel before enforcing Google OAuth.
